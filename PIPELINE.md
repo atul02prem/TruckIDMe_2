@@ -35,7 +35,7 @@ G1S10/G1S11/G1S12 (see §2).
   is paired with GPS. Verified a stable bridge: `gpsTime − canloggerTime` std =
   0.023–0.046 s across all 46 drivers, 0 CAN-time columns out of range
   (`verify_canlogger_bridge`).
-- **`gpsTime` is satellite UTC; `canloggerTime` is CAN-logger local (MDT).** Use
+<!-- - **`gpsTime` is satellite UTC; `canloggerTime` is CAN-logger local (MDT).** Use
   `gpsTime` only to *validate* the clock (independent reference); use
   `canloggerTime` to *align* data (shared axis with CAN).
 - **Column blocks selected by name, not position.** Raw layout is
@@ -184,4 +184,4 @@ for the cyberattack/route sub-study.
 - Deep sequence model (1D-CNN/TCN) on the clean `(window, timesteps, channels)`
   tensor as a learned-feature comparison to RF.
 - Open-set / cross-route evaluation (where the field is weak) — the real
-  publishable frontier.
+  publishable frontier. -->
