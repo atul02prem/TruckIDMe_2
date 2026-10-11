@@ -1,0 +1,39 @@
+{
+  "stage": "verify_feature_leakage",
+  "description": "[RETROFITTED] \u03b7\u00b2 per engineered feature \u2014 convergence check on the audit loop",
+  "command": [
+    "python",
+    "-m",
+    "src.qc.verify_feature_leakage"
+  ],
+  "started_utc": "2026-10-11T17:02:04.848699+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "5fd870f848e4850bdc27d86733404a0e74186a73ae7e7c603879f3d15e2f3112",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data/feature_matrix.csv",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8cb8ee17a155e6444821fa4cb04d48c12306d61a6762e56447f541bc0a1a396c",
+      "n_files": null,
+      "size_bytes": 9274571
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/feature_leakage_audit.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "6c18c71dabb080f1862b2c822967dcfdcd5f79c74c433e8eb57bafd664d30ad4",
+      "n_files": null,
+      "size_bytes": 3668
+    }
+  ],
+  "exit_code": 0
+}

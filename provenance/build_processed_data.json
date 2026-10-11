@@ -1,0 +1,96 @@
+{
+  "stage": "build_processed_data",
+  "description": "[RETROFITTED] Raw driver CSVs \u2192 processed: keep CAN + SparkFun, drop VBOX/Empatica, drop EXCLUDE_SPNS",
+  "command": [
+    "python",
+    "-m",
+    "src.data.build_processed_data"
+  ],
+  "started_utc": "2026-10-11T17:01:47.192769+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "50cc806a8d542d681fae8e46e6d106a49d08710f1f844c9caafcb8bc7fdbe38e",
+  "params": {
+    "exclude_drivers": [
+      "G1S04",
+      "G1S10",
+      "G1S11",
+      "G1S12"
+    ],
+    "exclude_spns": [
+      96,
+      105,
+      108,
+      110,
+      168,
+      171,
+      177,
+      182,
+      185,
+      235,
+      236,
+      244,
+      245,
+      247,
+      249,
+      250,
+      412,
+      518,
+      898,
+      918,
+      975,
+      986,
+      1029,
+      1136,
+      1172,
+      1761,
+      3031,
+      3241,
+      3242,
+      3246,
+      3544,
+      3721,
+      4191,
+      4206,
+      4207,
+      4360,
+      4363,
+      4765,
+      5466,
+      5862
+    ],
+    "n_exclude_spns": 40,
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/raw_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "bcd05988e3131bb6ae6f6980b1972a136912a428207aef74dc08ade10b52cc13",
+      "n_files": 50,
+      "size_bytes": 18366567809
+    }
+  ],
+  "outputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    },
+    {
+      "path": "outputs/reports/column_sampling_rates.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "ddf391c66213ac7e958b5309f2f92aa7423038648cf48504a14c204effbe6c6f",
+      "n_files": null,
+      "size_bytes": 9213
+    }
+  ],
+  "exit_code": 0
+}

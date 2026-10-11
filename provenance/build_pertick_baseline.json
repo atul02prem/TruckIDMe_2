@@ -1,0 +1,47 @@
+{
+  "stage": "build_pertick_baseline",
+  "description": "[RETROFITTED] Single-tick (100 ms) classification baseline",
+  "command": [
+    "python",
+    "-m",
+    "src.models.build_pertick_baseline"
+  ],
+  "started_utc": "2026-10-11T17:02:04.928604+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "b20ad331a7bc10e0b4d3118d94de5d87b6d9bca9c25aece0db12a4557ab9d7f9",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/interim_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "a91388aa8ebcb5ee86714e7b65b0c779d0cb832bd66973c587ed3cd02925c91b",
+      "n_files": 46,
+      "size_bytes": 1478241080
+    },
+    {
+      "path": "provenance/stamps/master_timeline.json",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8202b2552f97440b5362263d8baa16776b1469cc7621a3c4d63185553b697444",
+      "n_files": null,
+      "size_bytes": 251
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/pertick_baseline_results.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "5f5333522937c3d21205898e0ce4725c6c7b0f4ee3ea80629878196ea5119d01",
+      "n_files": null,
+      "size_bytes": 958
+    }
+  ],
+  "exit_code": 0
+}

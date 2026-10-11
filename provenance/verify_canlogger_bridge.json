@@ -1,0 +1,39 @@
+{
+  "stage": "verify_canlogger_bridge",
+  "description": "[RETROFITTED] Check gpsTime \u2194 canloggerTime offset is stable for every driver",
+  "command": [
+    "python",
+    "-m",
+    "QC.verify_canlogger_bridge"
+  ],
+  "started_utc": "2026-10-11T17:02:04.690985+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "356e4b3c221e7d3560afc5cf91cb3531a957c799b9b412bc410cfc0f4e31e6e8",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/canlogger_bridge_report.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "2bdf92fd1548a2c570c137939d06b457dc2bebb70b7af5d9597985fbf9c63d07",
+      "n_files": null,
+      "size_bytes": 5663
+    }
+  ],
+  "exit_code": 0
+}

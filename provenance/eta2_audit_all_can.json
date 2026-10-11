@@ -1,0 +1,81 @@
+{
+  "stage": "eta2_audit_all_can",
+  "description": "[RETROFITTED] \u03b7\u00b2 per raw CAN signal \u2014 the model-independent leakage gate",
+  "command": [
+    "python",
+    "-m",
+    "QC.verify_all_can_eta2"
+  ],
+  "started_utc": "2026-10-11T17:02:04.729435+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "b2eb64c3eabc329f9d4713e6afd21a334df7612b982b6fac50899fc3a3d5b979",
+  "params": {
+    "exclude_spns": [
+      96,
+      105,
+      108,
+      110,
+      168,
+      171,
+      177,
+      182,
+      185,
+      235,
+      236,
+      244,
+      245,
+      247,
+      249,
+      250,
+      412,
+      518,
+      898,
+      918,
+      975,
+      986,
+      1029,
+      1136,
+      1172,
+      1761,
+      3031,
+      3241,
+      3242,
+      3246,
+      3544,
+      3721,
+      4191,
+      4206,
+      4207,
+      4360,
+      4363,
+      4765,
+      5466,
+      5862
+    ],
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/raw_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "bcd05988e3131bb6ae6f6980b1972a136912a428207aef74dc08ade10b52cc13",
+      "n_files": 50,
+      "size_bytes": 18366567809
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/all_can_eta2.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8727aa25a6879073f3f12e185a5f4c5d4aa7baab4215983385227d03bbfd6b04",
+      "n_files": null,
+      "size_bytes": 9413
+    }
+  ],
+  "exit_code": 0
+}

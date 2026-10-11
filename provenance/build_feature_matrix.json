@@ -1,0 +1,58 @@
+{
+  "stage": "build_feature_matrix",
+  "description": "[RETROFITTED] Per (driver, sector): 9 aggregates per CAN signal",
+  "command": [
+    "python",
+    "-m",
+    "src.features.build_feature_matrix"
+  ],
+  "started_utc": "2026-10-11T17:02:04.797046+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "90a0d57e7842553ffab2b3e85e1bb90d6875d0d407ccf6f60c565ea960a25e1c",
+  "params": {
+    "aggregates": [
+      "mean",
+      "median",
+      "std",
+      "min",
+      "max",
+      "p10",
+      "p90",
+      "dmean",
+      "dstd"
+    ],
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/interim_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "a91388aa8ebcb5ee86714e7b65b0c779d0cb832bd66973c587ed3cd02925c91b",
+      "n_files": 46,
+      "size_bytes": 1478241080
+    },
+    {
+      "path": "provenance/stamps/master_timeline.json",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8202b2552f97440b5362263d8baa16776b1469cc7621a3c4d63185553b697444",
+      "n_files": null,
+      "size_bytes": 251
+    }
+  ],
+  "outputs": [
+    {
+      "path": "data/processed_data/feature_matrix.csv",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8cb8ee17a155e6444821fa4cb04d48c12306d61a6762e56447f541bc0a1a396c",
+      "n_files": null,
+      "size_bytes": 9274571
+    }
+  ],
+  "exit_code": 0
+}

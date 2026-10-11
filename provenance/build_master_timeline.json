@@ -1,0 +1,57 @@
+{
+  "stage": "build_master_timeline",
+  "description": "[RETROFITTED] Align every CAN signal to the 10 Hz canloggerTime grid (mean per 100 ms / zero-order hold)",
+  "command": [
+    "python",
+    "-m",
+    "src.data.build_master_timeline"
+  ],
+  "started_utc": "2026-10-11T17:02:04.625299+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "707f5c7175f2012dd37c4df45ffccadb22cb002d8cb083faa1a0ead5a64bff10",
+  "params": {
+    "grid_hz": 10,
+    "reference_driver": "G1_Subject1",
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    },
+    {
+      "path": "data/interim_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "a91388aa8ebcb5ee86714e7b65b0c779d0cb832bd66973c587ed3cd02925c91b",
+      "n_files": 46,
+      "size_bytes": 1478241080
+    }
+  ],
+  "outputs": [
+    {
+      "path": "data/interim_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "a91388aa8ebcb5ee86714e7b65b0c779d0cb832bd66973c587ed3cd02925c91b",
+      "n_files": 46,
+      "size_bytes": 1478241080
+    },
+    {
+      "path": "provenance/stamps/master_timeline.json",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8202b2552f97440b5362263d8baa16776b1469cc7621a3c4d63185553b697444",
+      "n_files": null,
+      "size_bytes": 251
+    }
+  ],
+  "exit_code": 0
+}

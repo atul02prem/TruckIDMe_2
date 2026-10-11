@@ -1,0 +1,47 @@
+{
+  "stage": "assign_sectors",
+  "description": "[RETROFITTED] GPS rows \u2192 nearest sector via KDTree \u2192 interim per-driver CSVs",
+  "command": [
+    "python",
+    "-m",
+    "src.data.assign_sectors"
+  ],
+  "started_utc": "2026-10-11T17:01:47.208444+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "11c2b9b7bf2524c568dfd501ddace3a9b1f9d6d3849e668ff20fa04bc1bcb807",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    },
+    {
+      "path": "data/external_data/sector_map.csv",
+      "kind": "file",
+      "method": "sha256",
+      "value": "c14a8b84a481ba8f24cc95493d1b54cc2697a16d978926e3b1e95d1d3c371b37",
+      "n_files": null,
+      "size_bytes": 3337
+    }
+  ],
+  "outputs": [
+    {
+      "path": "data/interim_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "a91388aa8ebcb5ee86714e7b65b0c779d0cb832bd66973c587ed3cd02925c91b",
+      "n_files": 46,
+      "size_bytes": 1478241080
+    }
+  ],
+  "exit_code": 0
+}

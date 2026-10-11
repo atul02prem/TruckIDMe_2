@@ -1,0 +1,50 @@
+{
+  "stage": "build_baseline_classifier",
+  "description": "[RETROFITTED] Random Forest on sector features, 5-fold stratified CV + top-k",
+  "command": [
+    "python",
+    "-m",
+    "src.models.build_baseline_classifier"
+  ],
+  "started_utc": "2026-10-11T17:02:04.881373+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "5bb75621f93d3d9783fcca489bfd20158b02119712a521ed048b9db9a9d412c4",
+  "params": {
+    "n_estimators": 300,
+    "folds": 5,
+    "seed": 42,
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data/feature_matrix.csv",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8cb8ee17a155e6444821fa4cb04d48c12306d61a6762e56447f541bc0a1a396c",
+      "n_files": null,
+      "size_bytes": 9274571
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/baseline_rf_results.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "76f72632a6ac5260efa75e688213357ab7b2bb19672914e4a638ac79175d9ce9",
+      "n_files": null,
+      "size_bytes": 4067
+    },
+    {
+      "path": "outputs/figures/baseline_rf_confusion_matrix.png",
+      "kind": "file",
+      "method": "sha256",
+      "value": "8feba322e32b624efb116c9543fbe5c10ebcf06edd775a3a3fee62543d3c866c",
+      "n_files": null,
+      "size_bytes": 132706
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,39 @@
+{
+  "stage": "verify_column_uniformity",
+  "description": "[RETROFITTED] Assert every processed driver file has an identical column schema",
+  "command": [
+    "python",
+    "-m",
+    "src.qc.verify_column_uniformity"
+  ],
+  "started_utc": "2026-10-11T17:02:04.672076+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "48bf1082eb392c31c72ade181605c780d8e2a1aa065b4144afc86404c76f38ce",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/column_uniformity.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "506692a028bc0c162a80e1557052ccb9b60b184cc2504a4961794fdc1d410438",
+      "n_files": null,
+      "size_bytes": 3598
+    }
+  ],
+  "exit_code": 0
+}

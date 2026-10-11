@@ -1,0 +1,39 @@
+{
+  "stage": "verify_sampling_rates",
+  "description": "[RETROFITTED] Per-signal native sampling rates across all drivers",
+  "command": [
+    "python",
+    "-m",
+    "QC.verify_sampling_rates"
+  ],
+  "started_utc": "2026-10-11T17:02:04.710023+00:00",
+  "duration_s": 0.0,
+  "git_commit": "2f56db7addd99f51c871c7a17a85272fe3648c98",
+  "git_branch": "main",
+  "git_dirty": true,
+  "code_fingerprint": "6249cf06df351719ddb88f899bffda5477943c76fcc02443d898ac92d4419f57",
+  "params": {
+    "retrofitted": true
+  },
+  "inputs": [
+    {
+      "path": "data/processed_data",
+      "kind": "dir",
+      "method": "dir-listing",
+      "value": "4b4932025dcdc09de6135425565990d3ff2b39b994564a27551274a24e7d9839",
+      "n_files": 50,
+      "size_bytes": 7119386729
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/reports/sampling_rate_all_drivers.md",
+      "kind": "file",
+      "method": "sha256",
+      "value": "d331a02966b37646a509c93c4f127abfcb6a61555581b167a8003db70fb54635",
+      "n_files": null,
+      "size_bytes": 6814
+    }
+  ],
+  "exit_code": 0
+}
