@@ -1,0 +1,19 @@
+# Core pipeline (conda env: tf-gpu)
+numpy==2.1.3
+pandas==2.2.3
+scipy==1.15.2
+scikit-learn==1.6.1
+matplotlib==3.10.1
+
+# Data-quality reporting
+missingno==0.5.2
+
+# Route / sector work
+folium==0.19.5
+
+# Deck generation (scripts/build_proposal_deck.py)
+python-pptx==1.0.2
+
+# Foundation-model track (MVP) — install before the embed stage
+# torch>=2.4
+# mantis-tsfm
