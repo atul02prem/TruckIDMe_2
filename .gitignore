@@ -53,3 +53,5 @@ literature_survey/*.pptx
 
 
 drop.py
+# personal learning log — not part of the repo
+outputs/reports/understanding_log.md
