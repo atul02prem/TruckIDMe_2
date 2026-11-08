@@ -33,7 +33,8 @@ from src.config import DATA_RAW, EXCLUDE_DRIVERS, OUT_REPORTS
 
 REPORT_PATH = OUT_REPORTS / "signal_classification.md"
 
-MAX_DRIVERS = 8        # pooling 8 drivers is ample to see a signal's value set
+MAX_DRIVERS = None     # all usable drivers; a type must hold across the dataset
+                       # (8 was enough to see a value set, but not to call one final)
 EVENT_COVERAGE = 0.5   # active less than half the drive => sporadic/event
 STEP_MAX_CODES = 16    # at most this many integer codes => a state, not a measure
 MONOTONE_FRACTION = 0.99   # never decreasing => accumulator, not a state code
@@ -53,8 +54,12 @@ BAND_HIGH = STEP_MAX_CODES * BAND_FACTOR
 # that breaks the classifier.
 SIGNAL_REVIEW: dict[int, tuple[str, str]] = {
     # ── reviewed -> continuous: a measured quantity that happens to move little
-    4154: ("continuous", "percent torque (fractional adder), 0.125% resolution"),
-    2978: ("continuous", "percent torque; parasitic losses barely vary on this truck"),
+    # Verified against DriverIDSQLiteCSVDataDictionary.pdf: a fractional adder to
+    # SPN 513 at 0.125%/bit, legal range 0-0.875%. The verdict holds for the SPN;
+    # the exported column does not honour it (9.31% of samples exceed 0.875% by
+    # 15-158x), so the signal is excluded on data quality. See DECISIONS.md S1.
+    4154: ("continuous", "fractional adder to SPN 513, 0.125%/bit, 0-0.875% (data dictionary) — column values exceed that range"),
+    2978: ("continuous", "percent torque; data dictionary names the sources as cooling fan, air compressor, air conditioning"),
     3031: ("continuous", "temperature"),
     1717: ("continuous", "percent torque"),
     5398: ("continuous", "percent torque"),
@@ -190,12 +195,12 @@ def in_band(n_distinct: int, integral: bool) -> bool:
     return integral and BAND_LOW <= n_distinct <= BAND_HIGH
 
 
-def profile_signals() -> pd.DataFrame:
+def profile_signals() -> tuple[pd.DataFrame, int]:
     """Measure the value set of every raw CAN signal, pooled over drivers.
 
     Returns:
-        One row per signal: presence, distinct values, type, and whether the
-        signal is degenerate (constant).
+        (table, n_drivers) where table has one row per signal carrying its
+        measurements and type, and n_drivers is how many drivers were pooled.
     """
     files = [p for p in sorted(DATA_RAW.glob("G*_Subject*.csv"))
              if driver_id(p.stem) not in EXCLUDE_DRIVERS][:MAX_DRIVERS]
@@ -247,15 +252,17 @@ def profile_signals() -> pd.DataFrame:
             "integer_valued": integral,
             "constant": distinct.size <= 1,
         })
-    return pd.DataFrame(rows).sort_values(["type", "n_distinct"])
+    return pd.DataFrame(rows).sort_values(["type", "n_distinct"]), len(files)
 
 
-def section_header(table: pd.DataFrame, counts: pd.Series) -> list[str]:
+def section_header(table: pd.DataFrame, counts: pd.Series,
+                   n_drivers: int) -> list[str]:
     """Title, scope, and the type-summary table.
 
     Args:
         table: one row per signal.
         counts: signal count per type.
+        n_drivers: how many drivers were pooled.
 
     Returns:
         Report lines.
@@ -264,7 +271,7 @@ def section_header(table: pd.DataFrame, counts: pd.Series) -> list[str]:
         "# Signal classification — the three standard automotive signal types",
         "",
         f"All **{len(table)} CAN signals** in the raw data, value sets pooled over "
-        f"{MAX_DRIVERS} drivers. This report describes only what each signal *is*. "
+        f"{n_drivers} drivers. This report describes only what each signal *is*. "
         "Whether a signal is kept, and whether our aggregation of it is correct, "
         "are separate questions answered elsewhere.",
         "",
@@ -284,11 +291,12 @@ def section_header(table: pd.DataFrame, counts: pd.Series) -> list[str]:
     ]
 
 
-def section_constants(degenerate: pd.DataFrame) -> list[str]:
+def section_constants(degenerate: pd.DataFrame, n_drivers: int) -> list[str]:
     """The zero-variance signals, and the open question their values raise.
 
     Args:
         degenerate: the signals holding a single value.
+        n_drivers: how many drivers were pooled.
 
     Returns:
         Report lines.
@@ -300,7 +308,7 @@ def section_constants(degenerate: pd.DataFrame) -> list[str]:
 
     lines += [
         f"**{len(degenerate)} signals are constant** — one single value across "
-        f"every sample of every one of the {MAX_DRIVERS} drivers. Not a signal "
+        f"every sample of every one of the {n_drivers} drivers. Not a signal "
         "type but a defect: with zero variance they carry no information, no "
         "separability statistic is defined on them (η² and mutual information "
         "are both 0/0), and they cannot contribute to any model.",
@@ -505,17 +513,18 @@ def section_method() -> list[str]:
     ]
 
 
-def build_report(table: pd.DataFrame) -> list[str]:
+def build_report(table: pd.DataFrame, n_drivers: int) -> list[str]:
     """Assemble the report from its sections, in reading order.
 
     Args:
         table: one row per signal, as `profile_signals` returns it.
+        n_drivers: how many drivers were pooled.
 
     Returns:
         Every line of the report.
     """
-    return (section_header(table, table["type"].value_counts())
-            + section_constants(table[table["constant"]])
+    return (section_header(table, table["type"].value_counts(), n_drivers)
+            + section_constants(table[table["constant"]], n_drivers)
             + section_all_signals(table)
             + section_threshold_audit(table[table["banded"]]
                                       .sort_values("n_distinct"))
@@ -540,8 +549,8 @@ def print_summary(table: pd.DataFrame) -> None:
 
 def main() -> None:
     """Classify every raw CAN signal and write the taxonomy report."""
-    table = profile_signals()
-    REPORT_PATH.write_text("\n".join(build_report(table)) + "\n")
+    table, n_drivers = profile_signals()
+    REPORT_PATH.write_text("\n".join(build_report(table, n_drivers)) + "\n")
     print_summary(table)
 
 
