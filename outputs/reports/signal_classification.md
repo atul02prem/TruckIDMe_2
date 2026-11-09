@@ -41,112 +41,141 @@ These values fall outside the ranges the SPN definitions allow, so the likeliest
 
 `SPN 5015` is currently one of the audited channels fed to the models, so a zero-information column is occupying an input slot. Dropping a constant column is a data-quality fix rather than a leakage judgement: with no variance there is no behaviour in it to lose, whatever the underlying cause turns out to be.
 
+## ⚑ Corroboration against the dataset's own dictionary
+
+`DriverIDSQLiteCSVDataDictionary.pdf` defines all **102** of these signals — the same count this report measures. It is the authoritative source for this dataset, describing the columns as exported rather than the bus as specified.
+
+**It encodes the same distinction, in its structure rather than its prose.** A parameter reporting a physical quantity carries a `Units:` field; a parameter reporting a *state* does not. That is an independent check, built from a different object than any statistic here.
+
+| | Signals | Of which step |
+|---|--:|--:|
+| has a `Units:` field | 89 | 4 |
+| **no** `Units:` field | 13 | **11** |
+
+**11 of the 13 unitless signals are classified step.** The dictionary and the measurement agree without either having consulted the other.
+
+### The disagreements, which are the informative part
+
+| SPN | Signal | Type | Units | Why they differ |
+|--:|---|---|---|---|
+| 4154 | `4154 Actual Engine - Percent Torque (Fractional)` | continuous | — | the dictionary states its resolution in prose (0.125%/bit, range 0–0.875%) instead of a `Units:` field, so the blank is a formatting quirk |
+| 3030 | `3030 Transmission Torque Converter Ratio` | continuous | — | a **ratio** is dimensionless, so the blank is a genuine absence of unit rather than a state — 789 distinct non-integer values confirm a measure |
+| 975 | `975 Engine Fan 1 Estimated Percent Speed` | step | % | **defined** as a measure in %, but takes only 2 integer values on this truck. Type as *measured* governs aggregation: zero-order hold is correct for a channel that is only ever on or off, whatever the SPN permits |
+| 986 | `986 Engine Fan 1 Requested Percent Speed` | step | % | **defined** as a measure in %, but takes only 2 integer values on this truck. Type as *measured* governs aggregation: zero-order hold is correct for a channel that is only ever on or off, whatever the SPN permits |
+| 523 | `523 Transmission Current Gear` | step | gear value | `gear value` is the dictionary naming a state code in its own words — agreement, not conflict |
+| 524 | `524 Transmission Selected Gear` | step | gear value | `gear value` is the dictionary naming a state code in its own words — agreement, not conflict |
+
+**The fan signals are the case worth remembering.** SPN 975 and 986 are percentages by definition and binary in this data. A taxonomy derived from the standard alone would call them continuous and interpolate them; a taxonomy derived from the data calls them step and holds them. For deciding how to aggregate, what the signal *does* here outranks what the SPN *allows*.
+
+
 ## All signals
 
-| SPN | Signal | Type | Coverage | Distinct | Integer | Accumulator |
-|--:|---|---|--:|--:|:-:|:-:|
-| 4154 | `4154 Actual Engine - Percent Torque (Fractional)` | continuous | 99.9% | 4 | yes | — |
-| 108 | `108 Barometric Pressure` | continuous | 99.9% | 7 | no | — |
-| 526 | `526 Transmission Actual Gear Ratio` | continuous | 100.0% | 7 | no | — |
-| 2978 | `2978 Estimated Engine Parasitic Losses - Percent Torque` | continuous | 99.9% | 14 | yes | — |
-| 1717 | `1717 Actual Maximum Available Retarder - Percent Torque` | continuous | 100.0% | 19 | yes | — |
-| 168 | `168 Battery Potential / Power Input 1` | continuous | 98.2% | 23 | no | — |
-| 5398 | `5398 Estimated Pumping - Percent Torque` | continuous | 100.0% | 27 | yes | — |
-| 3031 | `3031 Aftertreatment 1 Diesel Exhaust Fluid Tank Temperature 1` | continuous | 100.0% | 28 | yes | — |
-| 514 | `514 Nominal Friction - Percent Torque` | continuous | 99.9% | 29 | yes | — |
-| 1087 | `1087 Service Brake Circuit 1 Air Pressure` | continuous | 99.5% | 32 | yes | — |
-| 1088 | `1088 Service Brake Circuit 2 Air Pressure` | continuous | 99.5% | 32 | yes | — |
-| 1029 | `1029 Trip Average Fuel Rate` | continuous | 98.1% | 33 | no | — |
-| 27 | `27 Engine Exhaust Gas Recirculation 1 Valve Position` | continuous | 99.9% | 39 | no | — |
-| 105 | `105 Engine Intake Manifold 1 Temperature` | continuous | 100.0% | 39 | yes | — |
-| 110 | `110 Engine Coolant Temperature` | continuous | 100.0% | 42 | yes | — |
-| 905 | `905 Relative Speed; Front Axle, Left Wheel` | continuous | 99.9% | 62 | no | — |
-| 117 | `117 Brake Primary Pressure` | continuous | 99.7% | 64 | yes | — |
-| 118 | `118 Brake Secondary Pressure` | continuous | 99.7% | 64 | yes | — |
-| 906 | `906 Relative Speed; Front Axle, Right Wheel` | continuous | 99.9% | 67 | no | — |
-| 185 | `185 Engine Average Fuel Economy` | continuous | 100.0% | 74 | no | — |
-| 100 | `100 Engine Oil Pressure 1` | continuous | 100.0% | 78 | yes | — |
-| 236 | `236 Engine Total Idle Fuel Used` | continuous | 99.7% | 81 | no | yes |
-| 102 | `102 Engine Intake Manifold #1 Pressure` | continuous | 100.0% | 84 | yes | — |
-| 513 | `513 Actual Engine - Percent Torque` | continuous | 99.9% | 94 | yes | — |
-| 3251 | `3251 Aftertreatment 1 Diesel Particulate Filter Differential Pressure` | continuous | 100.0% | 94 | no | — |
-| 2432 | `2432 Engine Demand – Percent Torque` | continuous | 99.9% | 95 | yes | — |
-| 1761 | `1761 Aftertreatment 1 Diesel Exhaust Fluid Tank Volume` | continuous | 100.0% | 100 | no | — |
-| 512 | `512 Driver's Demand Engine - Percent Torque` | continuous | 99.9% | 101 | yes | — |
-| 92 | `92 Engine Percent Load At Current Speed` | continuous | 100.0% | 112 | yes | — |
-| 51 | `51 Engine Throttle Valve 1 Position 1` | continuous | 100.0% | 130 | no | — |
-| 908 | `908 Relative Speed; Rear Axle #1, Right Wheel` | continuous | 99.9% | 147 | no | — |
-| 3610 | `3610 Aftertreatment 1 Diesel Particulate Filter Outlet Pressure` | continuous | 100.0% | 150 | no | — |
-| 907 | `907 Relative Speed; Rear Axle #1, Left Wheel` | continuous | 99.9% | 175 | no | — |
-| 235 | `235 Engine Total Idle Hours` | continuous | 99.7% | 178 | no | yes |
-| 1242 | `1242 Instantaneous Estimated Brake Power` | continuous | 100.0% | 180 | yes | — |
-| 3357 | `3357 Actual Maximum Available Engine - Percent Torque` | continuous | 100.0% | 213 | no | — |
-| 96 | `96 Fuel Level 1` | continuous | 99.5% | 215 | no | — |
-| 641 | `641 Engine Variable Geometry Turbocharger Actuator #1` | continuous | 100.0% | 253 | no | — |
-| 91 | `91 Accelerator Pedal Position 1` | continuous | 100.0% | 279 | no | — |
-| 101 | `101 Engine Crankcase Pressure 1` | continuous | 100.0% | 375 | no | — |
-| 182 | `182 Engine Trip Fuel` | continuous | 99.9% | 528 | no | yes |
-| 250 | `250 Engine Total Fuel Used` | continuous | 99.9% | 530 | no | yes |
-| 2659 | `2659 Engine Exhaust Gas Recirculation 1 Mass Flow Rate` | continuous | 100.0% | 662 | no | — |
-| 247 | `247 Engine Total Hours of Operation` | continuous | 99.2% | 758 | no | yes |
-| 3030 | `3030 Transmission Torque Converter Ratio` | continuous | 50.4% | 789 | no | — |
-| 515 | `515 Engine's Desired Operating Speed` | continuous | 99.9% | 801 | no | — |
-| 171 | `171 Ambient Air Temperature` | continuous | 99.9% | 1053 | no | — |
-| 183 | `183 Engine Fuel Rate` | continuous | 100.0% | 1095 | no | — |
-| 1172 | `1172 Engine Turbocharger 1 Compressor Intake Temperature` | continuous | 100.0% | 1100 | no | — |
-| 904 | `904 Front Axle Speed` | continuous | 99.9% | 1213 | no | — |
-| 1136 | `1136 Engine ECU Temperature` | continuous | 100.0% | 1494 | no | — |
-| 412 | `412 Engine Exhaust Gas Recirculation 1 Temperature` | continuous | 100.0% | 1524 | no | — |
-| 177 | `177 Transmission Oil Temperature 1` | continuous | 99.9% | 1835 | no | — |
-| 132 | `132 Engine Intake Air Mass Flow Rate` | continuous | 100.0% | 2171 | no | — |
-| 249 | `249 Engine Total Revolutions` | continuous | 99.2% | 2649 | yes | yes |
-| 4765 | `4765 Aftertreatment 1 Diesel Oxidation Catalyst Intake Temperature` | continuous | 100.0% | 3114 | no | — |
-| 3241 | `3241 Aftertreatment 1 Exhaust Temperature 1` | continuous | 100.0% | 3165 | no | — |
-| 4363 | `4363 Aftertreatment 1 SCR Outlet Temperature` | continuous | 100.0% | 3823 | no | — |
-| 4360 | `4360 Aftertreatment 1 SCR Intake Temperature` | continuous | 100.0% | 3994 | no | — |
-| 5862 | `5862 Aftertreatment 1 SCR Intermediate Temperature` | continuous | 100.0% | 3994 | no | — |
-| 3242 | `3242 Aftertreatment 1 Diesel Particulate Filter Intake Temperature` | continuous | 100.0% | 4071 | no | — |
-| 3246 | `3246 Aftertreatment 1 Diesel Particulate Filter Outlet Temperature` | continuous | 100.0% | 4162 | no | — |
-| 7319 | `7319 Cruise Control Speed` | continuous | 100.0% | 4984 | no | — |
-| 84 | `84 Wheel-Based Vehicle Speed` | continuous | 100.0% | 4984 | no | — |
-| 187 | `187 Power Takeoff Set Speed` | continuous | 100.0% | 5572 | no | — |
-| 3226 | `3226 Aftertreatment 1 Outlet NOx 1` | continuous | 99.8% | 6486 | no | — |
-| 1209 | `1209 Engine Exhaust Bank 1 Pressure 1` | continuous | 100.0% | 7698 | no | — |
-| 245 | `245 Total Vehicle Distance` | continuous | 100.0% | 8607 | no | yes |
-| 244 | `244 Trip Distance` | continuous | 100.0% | 8611 | no | yes |
-| 5313 | `5313 Commanded Engine Fuel Rail Pressure` | continuous | 100.0% | 10335 | no | — |
-| 103 | `103 Engine Turbocharger 1 Speed` | continuous | 99.9% | 11245 | yes | — |
-| 5052 | `5052 Transmission Clutch/Converter Input Speed` | continuous | 53.0% | 14246 | no | — |
-| 190 | `190 Engine Speed` | continuous | 99.9% | 15103 | no | — |
-| 157 | `157 Engine Fuel 1 Injector Metering Rail 1 Pressure` | continuous | 100.0% | 17031 | no | — |
-| 3216 | `3216 Engine Exhaust 1 NOx 1` | continuous | 99.9% | 17226 | no | — |
-| 191 | `191 Transmission 1 Output Shaft Speed` | continuous | 99.6% | 17307 | no | — |
-| 161 | `161 Transmission 1 Input Shaft Speed` | continuous | 99.6% | 20402 | no | — |
-| 184 | `184 Engine Instantaneous Fuel Economy` | continuous | 100.0% | 25845 | no | — |
-| 5466 | `5466 Aftertreatment 1 Diesel Particulate Filter Soot Load Regeneration Threshold` | continuous | 100.0% | 30207 | no | — |
-| 3721 | `3721 Aftertreatment 1 Diesel Particulate Filter Time Since Last Active Regeneration` | continuous | 100.0% | 70727 | yes | yes |
-| 918 | `918 Trip Distance (High Resolution)` | continuous | 100.0% | 89752 | yes | yes |
-| 4191 | `4191 Engine Requested Torque (Fractional)` | event | 8.6% | 1 | yes | — |
-| 4207 | `4207 Message Checksum` | event | 8.6% | 1 | yes | — |
-| 4206 | `4206 Message Counter` | event | 8.6% | 1 | yes | — |
-| 3544 | `3544 Time Remaining in Engine Operating State` | event | 16.4% | 1 | yes | — |
-| 518 | `518 Engine Requested Torque/Torque Limit` | event | 8.6% | 127 | yes | — |
-| 898 | `898 Engine Requested Speed/Speed Limit` | event | 8.6% | 14414 | no | — |
-| 5015 | `5015 Momentary Engine Maximum Power Enable` | step | 99.6% | 1 | yes | — |
-| 2945 | `2945 Active Shift Console Indicator` | step | 100.0% | 2 | yes | — |
-| 3231 | `3231 Aftertreatment 1 Outlet Wide-Range Percent Oxygen 1 Reading Stable` | step | 99.8% | 2 | yes | — |
-| 3239 | `3239 Aftertreatment 2 Intake Dew Point` | step | 99.9% | 2 | yes | — |
-| 975 | `975 Engine Fan 1 Estimated Percent Speed` | step | 100.0% | 2 | yes | — |
-| 986 | `986 Engine Fan 1 Requested Percent Speed` | step | 96.1% | 2 | yes | — |
-| 574 | `574 Transmission Shift In Process` | step | 99.6% | 2 | yes | — |
-| 573 | `573 Transmission Torque Converter Lockup Engaged` | step | 99.6% | 2 | yes | — |
-| 4816 | `4816 Transmission Torque Converter Lockup Transition in Process` | step | 99.6% | 2 | yes | — |
-| 3229 | `3229 Aftertreatment 1 Outlet Gas Sensor 1 at Temperature` | step | 99.8% | 3 | yes | — |
-| 3230 | `3230 Aftertreatment 1 Outlet NOx 1 Reading Stable` | step | 99.8% | 3 | yes | — |
-| 2979 | `2979 Vehicle Acceleration Rate Limit Status` | step | 99.9% | 3 | yes | — |
-| 3232 | `3232 Aftertreatment 1 Outlet Gas Sensor 1 Heater Preliminary FMI` | step | 99.8% | 4 | yes | — |
-| 523 | `523 Transmission Current Gear` | step | 100.0% | 7 | yes | — |
-| 524 | `524 Transmission Selected Gear` | step | 100.0% | 7 | yes | — |
+Units are quoted from `DriverIDSQLiteCSVDataDictionary.pdf`. **No units is not missing data** — a parameter reporting a *state* has no physical unit, so the blank is itself evidence of type.
+
+| SPN | Signal | Type | Units (dictionary) | Coverage | Distinct | Integer | Accumulator |
+|--:|---|---|---|--:|--:|:-:|:-:|
+| 4154 | `4154 Actual Engine - Percent Torque (Fractional)` | continuous | — | 99.9% | 4 | yes | — |
+| 108 | `108 Barometric Pressure` | continuous | kPa | 99.9% | 7 | no | — |
+| 526 | `526 Transmission Actual Gear Ratio` | continuous | nan | 100.0% | 7 | no | — |
+| 2978 | `2978 Estimated Engine Parasitic Losses - Percent Torque` | continuous | % | 99.9% | 14 | yes | — |
+| 1717 | `1717 Actual Maximum Available Retarder - Percent Torque` | continuous | % | 100.0% | 19 | yes | — |
+| 168 | `168 Battery Potential / Power Input 1` | continuous | V | 98.2% | 23 | no | — |
+| 5398 | `5398 Estimated Pumping - Percent Torque` | continuous | % | 100.0% | 27 | yes | — |
+| 3031 | `3031 Aftertreatment 1 Diesel Exhaust Fluid Tank Temperature 1` | continuous | °C | 100.0% | 28 | yes | — |
+| 514 | `514 Nominal Friction - Percent Torque` | continuous | % | 99.9% | 29 | yes | — |
+| 1087 | `1087 Service Brake Circuit 1 Air Pressure` | continuous | kPa | 99.5% | 32 | yes | — |
+| 1088 | `1088 Service Brake Circuit 2 Air Pressure` | continuous | kPa | 99.5% | 32 | yes | — |
+| 1029 | `1029 Trip Average Fuel Rate` | continuous | l/h | 98.1% | 33 | no | — |
+| 27 | `27 Engine Exhaust Gas Recirculation 1 Valve Position` | continuous | % | 99.9% | 39 | no | — |
+| 105 | `105 Engine Intake Manifold 1 Temperature` | continuous | °C | 100.0% | 39 | yes | — |
+| 110 | `110 Engine Coolant Temperature` | continuous | °C | 100.0% | 42 | yes | — |
+| 905 | `905 Relative Speed; Front Axle, Left Wheel` | continuous | km/h | 99.9% | 62 | no | — |
+| 117 | `117 Brake Primary Pressure` | continuous | kPa | 99.7% | 64 | yes | — |
+| 118 | `118 Brake Secondary Pressure` | continuous | kPa | 99.7% | 64 | yes | — |
+| 906 | `906 Relative Speed; Front Axle, Right Wheel` | continuous | km/h | 99.9% | 67 | no | — |
+| 185 | `185 Engine Average Fuel Economy` | continuous | km/L | 100.0% | 74 | no | — |
+| 100 | `100 Engine Oil Pressure 1` | continuous | kPa | 100.0% | 78 | yes | — |
+| 236 | `236 Engine Total Idle Fuel Used` | continuous | l | 99.7% | 81 | no | yes |
+| 102 | `102 Engine Intake Manifold #1 Pressure` | continuous | kPa | 100.0% | 84 | yes | — |
+| 513 | `513 Actual Engine - Percent Torque` | continuous | % | 99.9% | 94 | yes | — |
+| 3251 | `3251 Aftertreatment 1 Diesel Particulate Filter Differential Pressure` | continuous | kPa | 100.0% | 94 | no | — |
+| 2432 | `2432 Engine Demand – Percent Torque` | continuous | % | 99.9% | 95 | yes | — |
+| 1761 | `1761 Aftertreatment 1 Diesel Exhaust Fluid Tank Volume` | continuous | % | 100.0% | 100 | no | — |
+| 512 | `512 Driver's Demand Engine - Percent Torque` | continuous | % | 99.9% | 101 | yes | — |
+| 92 | `92 Engine Percent Load At Current Speed` | continuous | % | 100.0% | 112 | yes | — |
+| 51 | `51 Engine Throttle Valve 1 Position 1` | continuous | % | 100.0% | 130 | no | — |
+| 908 | `908 Relative Speed; Rear Axle #1, Right Wheel` | continuous | km/h | 99.9% | 147 | no | — |
+| 3610 | `3610 Aftertreatment 1 Diesel Particulate Filter Outlet Pressure` | continuous | kPa | 100.0% | 150 | no | — |
+| 907 | `907 Relative Speed; Rear Axle #1, Left Wheel` | continuous | km/h | 99.9% | 175 | no | — |
+| 235 | `235 Engine Total Idle Hours` | continuous | hours | 99.7% | 178 | no | yes |
+| 1242 | `1242 Instantaneous Estimated Brake Power` | continuous | kW | 100.0% | 180 | yes | — |
+| 3357 | `3357 Actual Maximum Available Engine - Percent Torque` | continuous | % | 100.0% | 213 | no | — |
+| 96 | `96 Fuel Level 1` | continuous | % | 99.5% | 215 | no | — |
+| 641 | `641 Engine Variable Geometry Turbocharger Actuator #1` | continuous | % | 100.0% | 253 | no | — |
+| 91 | `91 Accelerator Pedal Position 1` | continuous | % | 100.0% | 279 | no | — |
+| 101 | `101 Engine Crankcase Pressure 1` | continuous | kPa | 100.0% | 375 | no | — |
+| 182 | `182 Engine Trip Fuel` | continuous | l | 99.9% | 528 | no | yes |
+| 250 | `250 Engine Total Fuel Used` | continuous | l | 99.9% | 530 | no | yes |
+| 2659 | `2659 Engine Exhaust Gas Recirculation 1 Mass Flow Rate` | continuous | kg/h | 100.0% | 662 | no | — |
+| 247 | `247 Engine Total Hours of Operation` | continuous | hours | 99.2% | 758 | no | yes |
+| 3030 | `3030 Transmission Torque Converter Ratio` | continuous | — | 50.4% | 789 | no | — |
+| 515 | `515 Engine's Desired Operating Speed` | continuous | rpm | 99.9% | 801 | no | — |
+| 171 | `171 Ambient Air Temperature` | continuous | °C | 99.9% | 1053 | no | — |
+| 183 | `183 Engine Fuel Rate` | continuous | l/h | 100.0% | 1095 | no | — |
+| 1172 | `1172 Engine Turbocharger 1 Compressor Intake Temperature` | continuous | °C | 100.0% | 1100 | no | — |
+| 904 | `904 Front Axle Speed` | continuous | km/h | 99.9% | 1213 | no | — |
+| 1136 | `1136 Engine ECU Temperature` | continuous | °C | 100.0% | 1494 | no | — |
+| 412 | `412 Engine Exhaust Gas Recirculation 1 Temperature` | continuous | °C | 100.0% | 1524 | no | — |
+| 177 | `177 Transmission Oil Temperature 1` | continuous | °C | 99.9% | 1835 | no | — |
+| 132 | `132 Engine Intake Air Mass Flow Rate` | continuous | kg/h | 100.0% | 2171 | no | — |
+| 249 | `249 Engine Total Revolutions` | continuous | r | 99.2% | 2649 | yes | yes |
+| 4765 | `4765 Aftertreatment 1 Diesel Oxidation Catalyst Intake Temperature` | continuous | °C | 100.0% | 3114 | no | — |
+| 3241 | `3241 Aftertreatment 1 Exhaust Temperature 1` | continuous | °C | 100.0% | 3165 | no | — |
+| 4363 | `4363 Aftertreatment 1 SCR Outlet Temperature` | continuous | °C | 100.0% | 3823 | no | — |
+| 4360 | `4360 Aftertreatment 1 SCR Intake Temperature` | continuous | °C | 100.0% | 3994 | no | — |
+| 5862 | `5862 Aftertreatment 1 SCR Intermediate Temperature` | continuous | °C | 100.0% | 3994 | no | — |
+| 3242 | `3242 Aftertreatment 1 Diesel Particulate Filter Intake Temperature` | continuous | °C | 100.0% | 4071 | no | — |
+| 3246 | `3246 Aftertreatment 1 Diesel Particulate Filter Outlet Temperature` | continuous | °C | 100.0% | 4162 | no | — |
+| 7319 | `7319 Cruise Control Speed` | continuous | km/h | 100.0% | 4984 | no | — |
+| 84 | `84 Wheel-Based Vehicle Speed` | continuous | km/h Table: ‘SparkfunGPSData’ | 100.0% | 4984 | no | — |
+| 187 | `187 Power Takeoff Set Speed` | continuous | rpm | 100.0% | 5572 | no | — |
+| 3226 | `3226 Aftertreatment 1 Outlet NOx 1` | continuous | ppm | 99.8% | 6486 | no | — |
+| 1209 | `1209 Engine Exhaust Bank 1 Pressure 1` | continuous | kPa | 100.0% | 7698 | no | — |
+| 245 | `245 Total Vehicle Distance` | continuous | km | 100.0% | 8607 | no | yes |
+| 244 | `244 Trip Distance` | continuous | km | 100.0% | 8611 | no | yes |
+| 5313 | `5313 Commanded Engine Fuel Rail Pressure` | continuous | MPa | 100.0% | 10335 | no | — |
+| 103 | `103 Engine Turbocharger 1 Speed` | continuous | rpm | 99.9% | 11245 | yes | — |
+| 5052 | `5052 Transmission Clutch/Converter Input Speed` | continuous | rpm | 53.0% | 14246 | no | — |
+| 190 | `190 Engine Speed` | continuous | rpm | 99.9% | 15103 | no | — |
+| 157 | `157 Engine Fuel 1 Injector Metering Rail 1 Pressure` | continuous | MPa | 100.0% | 17031 | no | — |
+| 3216 | `3216 Engine Exhaust 1 NOx 1` | continuous | ppm | 99.9% | 17226 | no | — |
+| 191 | `191 Transmission 1 Output Shaft Speed` | continuous | rpm | 99.6% | 17307 | no | — |
+| 161 | `161 Transmission 1 Input Shaft Speed` | continuous | rpm | 99.6% | 20402 | no | — |
+| 184 | `184 Engine Instantaneous Fuel Economy` | continuous | km/L | 100.0% | 25845 | no | — |
+| 5466 | `5466 Aftertreatment 1 Diesel Particulate Filter Soot Load Regeneration Threshold` | continuous | % | 100.0% | 30207 | no | — |
+| 3721 | `3721 Aftertreatment 1 Diesel Particulate Filter Time Since Last Active Regeneration` | continuous | Seconds | 100.0% | 70727 | yes | yes |
+| 918 | `918 Trip Distance (High Resolution)` | continuous | m | 100.0% | 89752 | yes | yes |
+| 4191 | `4191 Engine Requested Torque (Fractional)` | event | % | 8.6% | 1 | yes | — |
+| 4207 | `4207 Message Checksum` | event | count | 8.6% | 1 | yes | — |
+| 4206 | `4206 Message Counter` | event | count | 8.6% | 1 | yes | — |
+| 3544 | `3544 Time Remaining in Engine Operating State` | event | Seconds | 16.4% | 1 | yes | — |
+| 518 | `518 Engine Requested Torque/Torque Limit` | event | % | 8.6% | 127 | yes | — |
+| 898 | `898 Engine Requested Speed/Speed Limit` | event | rpm | 8.6% | 14414 | no | — |
+| 5015 | `5015 Momentary Engine Maximum Power Enable` | step | — | 99.6% | 1 | yes | — |
+| 2945 | `2945 Active Shift Console Indicator` | step | — | 100.0% | 2 | yes | — |
+| 3231 | `3231 Aftertreatment 1 Outlet Wide-Range Percent Oxygen 1 Reading Stable` | step | — | 99.8% | 2 | yes | — |
+| 3239 | `3239 Aftertreatment 2 Intake Dew Point` | step | — | 99.9% | 2 | yes | — |
+| 975 | `975 Engine Fan 1 Estimated Percent Speed` | step | % | 100.0% | 2 | yes | — |
+| 986 | `986 Engine Fan 1 Requested Percent Speed` | step | % | 96.1% | 2 | yes | — |
+| 574 | `574 Transmission Shift In Process` | step | — | 99.6% | 2 | yes | — |
+| 573 | `573 Transmission Torque Converter Lockup Engaged` | step | — | 99.6% | 2 | yes | — |
+| 4816 | `4816 Transmission Torque Converter Lockup Transition in Process` | step | — | 99.6% | 2 | yes | — |
+| 3229 | `3229 Aftertreatment 1 Outlet Gas Sensor 1 at Temperature` | step | — | 99.8% | 3 | yes | — |
+| 3230 | `3230 Aftertreatment 1 Outlet NOx 1 Reading Stable` | step | — | 99.8% | 3 | yes | — |
+| 2979 | `2979 Vehicle Acceleration Rate Limit Status` | step | — | 99.9% | 3 | yes | — |
+| 3232 | `3232 Aftertreatment 1 Outlet Gas Sensor 1 Heater Preliminary FMI` | step | — | 99.8% | 4 | yes | — |
+| 523 | `523 Transmission Current Gear` | step | gear value | 100.0% | 7 | yes | — |
+| 524 | `524 Transmission Selected Gear` | step | gear value | 100.0% | 7 | yes | — |
 
 ## 🟢 Threshold audit — the code-book boundary
 

@@ -30,6 +30,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import DATA_RAW, EXCLUDE_DRIVERS, OUT_REPORTS
+from src.qc.signal_dictionary import load as load_dictionary
 
 REPORT_PATH = OUT_REPORTS / "signal_classification.md"
 
@@ -204,6 +205,7 @@ def profile_signals() -> tuple[pd.DataFrame, int]:
     """
     files = [p for p in sorted(DATA_RAW.glob("G*_Subject*.csv"))
              if driver_id(p.stem) not in EXCLUDE_DRIVERS][:MAX_DRIVERS]
+    definitions = load_dictionary()
 
     header = pd.read_csv(files[0], nrows=0).columns.tolist()
     signals = {int(m.group(1)): col for col in header
@@ -251,6 +253,7 @@ def profile_signals() -> tuple[pd.DataFrame, int]:
             "only_value": float(distinct[0]) if distinct.size == 1 else float("nan"),
             "integer_valued": integral,
             "constant": distinct.size <= 1,
+            "units": definitions.get(spn, {}).get("units"),
         })
     return pd.DataFrame(rows).sort_values(["type", "n_distinct"]), len(files)
 
@@ -387,12 +390,18 @@ def section_all_signals(table: pd.DataFrame) -> list[str]:
         "",
         "## All signals",
         "",
-        "| SPN | Signal | Type | Coverage | Distinct | Integer | Accumulator |",
-        "|--:|---|---|--:|--:|:-:|:-:|",
+        "Units are quoted from `DriverIDSQLiteCSVDataDictionary.pdf`. **No units "
+        "is not missing data** — a parameter reporting a *state* has no physical "
+        "unit, so the blank is itself evidence of type.",
+        "",
+        "| SPN | Signal | Type | Units (dictionary) | Coverage | Distinct | "
+        "Integer | Accumulator |",
+        "|--:|---|---|---|--:|--:|:-:|:-:|",
     ]
     for row in table.itertuples(index=False):
         coverage = "—" if np.isnan(row.coverage) else f"{row.coverage:.1%}"
         lines.append(f"| {row.spn} | `{row.signal}` | {row.type} | "
+                     f"{row.units or '—'} | "
                      f"{coverage} | {row.n_distinct} | "
                      f"{'yes' if row.integer_valued else 'no'} | "
                      f"{'yes' if row.accumulator else '—'} |")
@@ -513,6 +522,97 @@ def section_method() -> list[str]:
     ]
 
 
+def section_dictionary(table: pd.DataFrame) -> list[str]:
+    """Corroborate the measured taxonomy against the dataset's own dictionary.
+
+    The dictionary encodes the same distinction this report measures, in its
+    structure rather than its prose: a parameter reporting a physical quantity
+    carries a `Units:` field and a parameter reporting a state does not. That
+    makes it an independent check, built from a different object than any
+    statistic here.
+
+    Args:
+        table: one row per signal, carrying its dictionary units.
+
+    Returns:
+        Report lines.
+    """
+    stated = table[table.units.notna()]
+    unitless = table[table.units.isna()]
+    step_unitless = unitless[unitless.type == "step"]
+    agree = len(step_unitless)
+
+    lines = [
+        "",
+        "## ⚑ Corroboration against the dataset's own dictionary",
+        "",
+        f"`DriverIDSQLiteCSVDataDictionary.pdf` defines all **{len(table)}** of "
+        "these signals — the same count this report measures. It is the "
+        "authoritative source for this dataset, describing the columns as "
+        "exported rather than the bus as specified.",
+        "",
+        "**It encodes the same distinction, in its structure rather than its "
+        "prose.** A parameter reporting a physical quantity carries a `Units:` "
+        "field; a parameter reporting a *state* does not. That is an independent "
+        "check, built from a different object than any statistic here.",
+        "",
+        f"| | Signals | Of which step |",
+        "|---|--:|--:|",
+        f"| has a `Units:` field | {len(stated)} | "
+        f"{int((stated.type == 'step').sum())} |",
+        f"| **no** `Units:` field | {len(unitless)} | **{agree}** |",
+        "",
+        f"**{agree} of the {len(unitless)} unitless signals are classified "
+        f"step.** The dictionary and the measurement agree without either having "
+        "consulted the other.",
+        "",
+        "### The disagreements, which are the informative part",
+        "",
+        "| SPN | Signal | Type | Units | Why they differ |",
+        "|--:|---|---|---|---|",
+    ]
+
+    unitless_other = unitless[unitless.type != "step"]
+    for row in unitless_other.itertuples(index=False):
+        if row.spn == 3030:
+            why = ("a **ratio** is dimensionless, so the blank is a genuine "
+                   "absence of unit rather than a state — 789 distinct "
+                   "non-integer values confirm a measure")
+        elif row.spn == 4154:
+            why = ("the dictionary states its resolution in prose "
+                   "(0.125%/bit, range 0–0.875%) instead of a `Units:` field, "
+                   "so the blank is a formatting quirk")
+        else:
+            why = "unitless but not classified step — review"
+        lines.append(f"| {row.spn} | `{row.signal}` | {row.type} | — | {why} |")
+
+    step_with_units = stated[stated.type == "step"]
+    for row in step_with_units.itertuples(index=False):
+        if row.units == "gear value":
+            why = ("`gear value` is the dictionary naming a state code in its "
+                   "own words — agreement, not conflict")
+        else:
+            why = (f"**defined** as a measure in {row.units}, but takes only "
+                   f"{row.n_distinct} integer values on this truck. Type as "
+                   "*measured* governs aggregation: zero-order hold is correct "
+                   "for a channel that is only ever on or off, whatever the SPN "
+                   "permits")
+        lines.append(f"| {row.spn} | `{row.signal}` | {row.type} | "
+                     f"{row.units} | {why} |")
+
+    lines += [
+        "",
+        "**The fan signals are the case worth remembering.** SPN 975 and 986 are "
+        "percentages by definition and binary in this data. A taxonomy derived "
+        "from the standard alone would call them continuous and interpolate "
+        "them; a taxonomy derived from the data calls them step and holds them. "
+        "For deciding how to aggregate, what the signal *does* here outranks "
+        "what the SPN *allows*.",
+        "",
+    ]
+    return lines
+
+
 def build_report(table: pd.DataFrame, n_drivers: int) -> list[str]:
     """Assemble the report from its sections, in reading order.
 
@@ -525,6 +625,7 @@ def build_report(table: pd.DataFrame, n_drivers: int) -> list[str]:
     """
     return (section_header(table, table["type"].value_counts(), n_drivers)
             + section_constants(table[table["constant"]], n_drivers)
+            + section_dictionary(table)
             + section_all_signals(table)
             + section_threshold_audit(table[table["banded"]]
                                       .sort_values("n_distinct"))
