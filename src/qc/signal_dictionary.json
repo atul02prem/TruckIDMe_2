@@ -1,0 +1,410 @@
+{
+ "27": {
+  "description": "The position of the exhaust gas recirculation valve expressed as a percentage of full travel.",
+  "units": "%"
+ },
+ "51": {
+  "description": "The position of the valve used to regulate the supply of a fluid, usually air or fuel/air mixture, to an engine. 0% represents no supply and 100% is full supply.",
+  "units": "%"
+ },
+ "84": {
+  "description": "Speed of the vehicle as calculated from wheel or tailshaft speed.",
+  "units": "km/h Table: ‘SparkfunGPSData’"
+ },
+ "91": {
+  "description": "This parameter is intended for the primary accelerator control in an application.",
+  "units": "%"
+ },
+ "92": {
+  "description": "The ratio of actual engine percent torque (indicated) to maximum indicated torque available at the current engine speed, clipped to zero torque during engine braking.",
+  "units": "%"
+ },
+ "96": {
+  "description": "Ratio of volume of fuel to the total volume of fuel storage container.",
+  "units": "%"
+ },
+ "100": {
+  "description": "Gage pressure of oil in engine lubrication system as provided by the oil pump. See SPN 7468 for alternate resolution.",
+  "units": "kPa"
+ },
+ "101": {
+  "description": "First instance of the gage pressure inside engine crankcase.",
+  "units": "kPa"
+ },
+ "102": {
+  "description": "The gage pressure measurement of the air intake manifold. If there are multiple air pressure sensors in the intake stream, this is the last one in flow direction before entering th…",
+  "units": "kPa"
+ },
+ "103": {
+  "description": "Rotational velocity of rotor in the turbocharger.",
+  "units": "rpm"
+ },
+ "105": {
+  "description": "Temperature of pre-combustion air found in intake manifold of engine air supply system.",
+  "units": "°C"
+ },
+ "108": {
+  "description": "Absolute air pressure of the atmosphere.",
+  "units": "kPa"
+ },
+ "110": {
+  "description": "Temperature of liquid found in engine cooling system.",
+  "units": "°C"
+ },
+ "117": {
+  "description": "Gage pressure of air in the primary, or supply side, of the air brake system.",
+  "units": "kPa"
+ },
+ "118": {
+  "description": "Gage pressure of air in the secondary, or service side, of the air brake system.",
+  "units": "kPa"
+ },
+ "132": {
+  "description": "Mass flow rate of fresh air entering the engine air intake, before any EGR mixer, if used. Flow rate of fresh air conducted to the engine cylinders to support combustion.",
+  "units": "kg/h"
+ },
+ "157": {
+  "description": "The gage pressure of fuel in the primary, or first, metering rail as delivered from the supply pump to the injector metering intake.",
+  "units": "MPa"
+ },
+ "161": {
+  "description": "Rotational velocity of the primary shaft transferring power into the first transmission. When a torque converter is present, it is the output of the torque converter.",
+  "units": "rpm"
+ },
+ "168": {
+  "description": "This parameter measures the first source of battery potential as measured at the input of the ECU/actuator etc.",
+  "units": "V"
+ },
+ "171": {
+  "description": "Temperature of air surrounding vehicle.",
+  "units": "°C"
+ },
+ "177": {
+  "description": "First instance of transmission lubricant temperature.",
+  "units": "°C"
+ },
+ "182": {
+  "description": "Fuel consumed during all or part of a journey. See SPN 5053 for alternate resolution.",
+  "units": "l"
+ },
+ "183": {
+  "description": "Amount of fuel consumed by engine per unit of time.",
+  "units": "l/h"
+ },
+ "184": {
+  "description": "Current fuel economy at current vehicle velocity.",
+  "units": "km/L"
+ },
+ "185": {
+  "description": "Average of instantaneous fuel economy for that segment of vehicle operation of interest.",
+  "units": "km/L"
+ },
+ "187": {
+  "description": "Rotational velocity selected by operator for device used to transmit engine power to auxiliary equipment.",
+  "units": "rpm"
+ },
+ "190": {
+  "description": "Actual engine speed which is calculated over a minimum crankshaft angle of 720 degrees divided by the number of cylinders.",
+  "units": "rpm"
+ },
+ "191": {
+  "description": "Calculated speed of the transmission 1 output shaft.",
+  "units": "rpm"
+ },
+ "235": {
+  "description": "Accumulated time of operation of the engine while under idle conditions.",
+  "units": "hours"
+ },
+ "236": {
+  "description": "Accumulated amount of fuel used during vehicle operation while under idle conditions.",
+  "units": "l"
+ },
+ "244": {
+  "description": "Distance traveled during all or part of a journey.",
+  "units": "km"
+ },
+ "245": {
+  "description": "Accumulated distance traveled by vehicle during its operation.",
+  "units": "km"
+ },
+ "247": {
+  "description": "Accumulated time of operation of engine.",
+  "units": "hours"
+ },
+ "249": {
+  "description": "Accumulated number of revolutions of engine crankshaft during its operation.",
+  "units": "r"
+ },
+ "250": {
+  "description": "Accumulated amount of fuel used during vehicle operation. See SPN 5054 for alternate resolution.",
+  "units": "l"
+ },
+ "412": {
+  "description": "Temperature of Recirculated Exhaust Gas. This should not be used for Exhaust Gas Recirculation Mixer Intake Temperature. See SPN 5020.",
+  "units": "°C"
+ },
+ "512": {
+  "description": "Percent Torque - The requested torque output of the engine by the driver.",
+  "units": "%"
+ },
+ "513": {
+  "description": "Percent Torque - The calculated output torque of the engine. The data is transmitted in indicated torque as a percent of reference engine torque (see the engine configuration messa…",
+  "units": "%"
+ },
+ "514": {
+  "description": "Percent Torque - The calculated torque that indicates the amount of torque required by the basic engine itself added by the loss torque of accessories.",
+  "units": "%"
+ },
+ "515": {
+  "description": "An indication by the engine of the optimal operating speed of the engine for the current existing conditions.",
+  "units": "rpm"
+ },
+ "518": {
+  "description": "Parameter provided to the engine or retarder in the torque/speed control message for controlling or limiting the output torque.",
+  "units": "%"
+ },
+ "523": {
+  "description": "The gear currently engaged in the transmission or the last gear engaged while the transmission is in the process of shifting to the new or selected gear.",
+  "units": "gear value"
+ },
+ "524": {
+  "description": "The gear that the transmission will attempt to achieve during the current shift if a shift is in progress, or the next shift if one is pending (i.e., waiting for torque reduction t…",
+  "units": "gear value"
+ },
+ "526": {
+  "description": "Actual ratio of input shaft speed to output shaft speed.",
+  "units": "nan"
+ },
+ "573": {
+  "description": "State signal which indicates whether the torque converter lockup is engaged.",
+  "units": null
+ },
+ "574": {
+  "description": "Indicates that the transmission is in process of shifting from the current gear to the selected gear.",
+  "units": null
+ },
+ "641": {
+  "description": "Actuator that controls the variable geometry turbocharger geometry.The control command to the actuator, normalized to percent, where 0% nominally represents fully closed (smallest…",
+  "units": "%"
+ },
+ "898": {
+  "description": "Parameter provided to the engine from external sources in the torque/speed control message.",
+  "units": "rpm"
+ },
+ "904": {
+  "description": "The average speed of the two front wheels.",
+  "units": "km/h"
+ },
+ "905": {
+  "description": "The speed of the front axle, left wheel relative to the front axle speed, SPN 904.",
+  "units": "km/h"
+ },
+ "906": {
+  "description": "The speed of the front axle, right wheel relative to the front axle speed, SPN 904.",
+  "units": "km/h"
+ },
+ "907": {
+  "description": "The speed of the rear axle #1, left wheel relative to the front axle speed, SPN 904.",
+  "units": "km/h"
+ },
+ "908": {
+  "description": "The speed of the rear axle #1, right wheel relative to the front axle speed, SPN 904.",
+  "units": "km/h"
+ },
+ "918": {
+  "description": "Distance traveled during all or part of a journey.",
+  "units": "m"
+ },
+ "975": {
+  "description": "Estimated fan speed as a ratio of the fan drive (current speed) to the fully engaged fan drive (maximum fan speed). A two state fan (off/on) will use 0% and 100% respectively.",
+  "units": "%"
+ },
+ "986": {
+  "description": "Fan speed of the first or only fan in the system as a ratio of the actual fan drive (current speed) to the fully engaged fan drive (maximum fan speed).",
+  "units": "%"
+ },
+ "1029": {
+  "description": "Average fuel rate, equal to trip fuel divided by trip time while the engine speed is above zero, since the last trip reset.",
+  "units": "l/h"
+ },
+ "1087": {
+  "description": "The pneumatic pressure in the primary service brake circuit or reservoir, supplying the rear axle.",
+  "units": "kPa"
+ },
+ "1088": {
+  "description": "The pneumatic pressure in the secondary service brake circuit or reservoir, supplying the front axle.",
+  "units": "kPa"
+ },
+ "1136": {
+  "description": "Temperature of the engine electronic control unit.",
+  "units": "°C"
+ },
+ "1172": {
+  "description": "Temperature of the air entering the compressor side of the turbocharger.",
+  "units": "°C"
+ },
+ "1209": {
+  "description": "Gage pressure of the exhaust gases as measured at the turbine intake of the turbocharger. This SP to be used for inline engines or exhaust bank 1 of multiple bank engines.",
+  "units": "kPa"
+ },
+ "1242": {
+  "description": "Estimate of the power developed by the engine.",
+  "units": "kW"
+ },
+ "1717": {
+  "description": "Percent Torque - This is the maximum amount of torque that the retarder can immediately deliver.",
+  "units": "%"
+ },
+ "1761": {
+  "description": "Ratio of volume of diesel exhaust fluid to the total volume of diesel exhaust fluid storage container for aftertreatment system 1 (exhaust bank 1). 0% is empty and 100% is full.",
+  "units": "%"
+ },
+ "2432": {
+  "description": "The requested torque output of the engine by all dynamic internal inputs, including smoke control, noise control and low and high speed governing.",
+  "units": "%"
+ },
+ "2659": {
+  "description": "Flow rate of gas through the EGR system. Flow rate of the exhaust gas being recirculated into the combustion air.",
+  "units": "kg/h"
+ },
+ "2945": {
+  "description": "Signal from transmission control unit indicating which shift console (primary or secondary) it currently considers as the active shift selector input.",
+  "units": null
+ },
+ "2978": {
+  "description": "Percent Torque - The calculated torque that indicates the estimated amount of torque loss due to engine parasitics, such as cooling fan, air compressor, air conditioning, etc.",
+  "units": "%"
+ },
+ "2979": {
+  "description": "Status (active or not active) of the system used to limit maximum forward vehicle acceleration. ○ 00b = Limit not active ○ 01b = Limit active ○ 10b = Reserved ○ 11b = Not available",
+  "units": null
+ },
+ "3030": {
+  "description": "Ratio of the transmissions torque converter output torque to torque converter input torque at current speed.",
+  "units": null
+ },
+ "3031": {
+  "description": "Temperature of the diesel exhaust fluid in the storage tank.",
+  "units": "°C"
+ },
+ "3216": {
+  "description": "The amount of combined NO and NO2 in the exhaust, represented in NOx molecule parts per million non-NOx molecules, in exhaust bank 1.",
+  "units": "ppm"
+ },
+ "3226": {
+  "description": "The amount of combined NO and NO2 in the exhaust exiting the aftertreatment system measured by a NOx sensor at the aftertreatment outlet, represented in NOx molecule parts per mill…",
+  "units": "ppm"
+ },
+ "3229": {
+  "description": "Indicates that the heater element of the aftertreatment outlet gas sensor, either NOx or O2, is within the manufacturer's specified range for accurate measurements in exhaust bank…",
+  "units": null
+ },
+ "3230": {
+  "description": "Indicates that the NOx reading of the aftertreatment outlet NOx sensor is stable as determined by the manufacturer's control software in exhaust bank 1.",
+  "units": null
+ },
+ "3231": {
+  "description": "Indicates that the percent oxygen reading of the aftertreatment outlet gas sensor, either NOx or O2, is stable as determined by the manufacturer's control software in exhaust bank…",
+  "units": null
+ },
+ "3232": {
+  "description": "Used to identify the applicable J1939-73 FMI detected in the heater of the outlet exhaust gas sensor, either NOx or O2, by the manufacturer’s sensor control software in exhaust ban…",
+  "units": null
+ },
+ "3239": {
+  "description": "Indicates that the temperature on the intake side of the aftertreatment system has exceeded the dew point, as estimated by the ECU in exhaust bank 2.",
+  "units": null
+ },
+ "3241": {
+  "description": "The reading from the exhaust temperature sensor located farthest upstream in the aftertreatment system in exhaust bank 1.",
+  "units": "°C"
+ },
+ "3242": {
+  "description": "Temperature of engine combustion byproducts entering the diesel particulate filter in exhaust bank 1.",
+  "units": "°C"
+ },
+ "3246": {
+  "description": "Temperature of engine combustion byproducts leaving the diesel particulate filter exhaust in exhaust bank 1.",
+  "units": "°C"
+ },
+ "3251": {
+  "description": "Exhaust differential pressure measured between the intake and exhaust of a diesel particulate filter in exhaust bank 1.",
+  "units": "kPa"
+ },
+ "3357": {
+  "description": "Percent Torque - This is the maximum amount of torque that the engine can immediately deliver as a percentage of the reference engine torque (SPN 544).",
+  "units": "%"
+ },
+ "3544": {
+  "description": "This parameter is used to indicate the time remaining in the current engine operating state, based on the state defined in the SP \"Engine Operating State\" (SPN 3543).",
+  "units": "Seconds"
+ },
+ "3610": {
+  "description": "This parameter indicates the diesel particulate filter outlet gage pressure 1 (bank 1).",
+  "units": "kPa"
+ },
+ "3721": {
+  "description": "Indicates the time since the last active regeneration event of diesel particulate filter 1.",
+  "units": "Seconds"
+ },
+ "4154": {
+  "description": "Percent Torque (Fractional) - This parameter displays an additional torque in percent of the reference engine torque. When the MSB is set to 1, this parameter is not available.",
+  "units": null
+ },
+ "4191": {
+  "description": "This parameter displays an additional torque in percent of the reference engine torque.",
+  "units": "%"
+ },
+ "4206": {
+  "description": "The message counter is used to detect situations where the transmitting ECU malfunction repeats the same frame all the time.",
+  "units": "count"
+ },
+ "4207": {
+  "description": "The message checksum is used to verify the signal path from the transmitting device to the receiving device.",
+  "units": "count"
+ },
+ "4360": {
+  "description": "Temperature of engine combustion byproducts entering the SCR in exhaust bank 1.",
+  "units": "°C"
+ },
+ "4363": {
+  "description": "Temperature of engine combustion byproducts leaving the SCR outlet in exhaust bank 1.",
+  "units": "°C"
+ },
+ "4765": {
+  "description": "Temperature of engine combustion byproducts entering the diesel oxidation catalyst in exhaust bank 1.",
+  "units": "°C"
+ },
+ "4816": {
+  "description": "State signal indicating whether or not the transmission torque converter lock up clutch is transitioning between being applied and being released.",
+  "units": null
+ },
+ "5015": {
+  "description": "Momentarily Requesting highest torque map from the engine control ○ 00b = not requesting maximum power available ○ 01b = momentarily requesting maximum power available ○ 10b = faul…",
+  "units": null
+ },
+ "5052": {
+  "description": "Rotational velocity of the input to a transmission's master clutch or torque converter.",
+  "units": "rpm"
+ },
+ "5313": {
+  "description": "Provides the commanded set point value for the engine fuel rail gage pressure",
+  "units": "MPa"
+ },
+ "5398": {
+  "description": "Percent Torque - The calculated torque that indicates the estimated amount of torque loss due to the engine air handling system.",
+  "units": "%"
+ },
+ "5466": {
+  "description": "This parameter indicates the value that will first cause DPF regeneration in aftertreatment 1. There may be multiple parameters that cause DPF regeneration (e.g.",
+  "units": "%"
+ },
+ "5862": {
+  "description": "Temperature of engine combustion byproducts at an intermediate point in the SCR component in exhaust bank 1.",
+  "units": "°C"
+ },
+ "7319": {
+  "description": "This parameter is the vehicle speed that the cruise control algorithm is currently using as its cruise control set point.",
+  "units": "km/h"
+ }
+}
