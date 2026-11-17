@@ -6,6 +6,118 @@ on trust. Newest first within each section.
 
 ---
 
+## S3 — Model input is 50 channels: SPN 51, 3030 and 2979 dropped on data quality
+
+**Supersedes S2's "keep 3030".** Same scope rule, applied one step further: a
+channel that does not fit the input tensor is removed rather than repaired.
+
+| SPN | Basis | η² (not the reason) |
+|--:|---|---|
+| 51 Engine Throttle Valve 1 Position 1 | one value **98.35%** of a typical drive, **and** the highest aliased power of any kept channel (**0.536** at 120 s) | 0.001 / 0.040 |
+| 3030 Transmission Torque Converter Ratio | **16–36 genuine multi-second blackouts per drive in all 46 drivers**, median worst gap 6.26 s, linearly interpolated across | 0.023 / 0.055 |
+| 2979 Vehicle Acceleration Rate Limit Status | a **two-state flag** (`00b` not active, `01b` active) whose `11b = Not available` sentinel occupies **28.57%** of samples and sits numerically **11× above the real 0–1 range**. Interpolating across it manufactures values like 3.7 and 7.4 — **40.2% of its aggregated values are illegal**, with 4,793 fabricated transitions per window | 0.117 (Cramér's V) |
+
+**The basis is data quality, not separability.** η² is recorded above only to show
+what is given up; it is not the criterion. Gating channels by η² would have dropped
+the brake pedal (117/118/1087, η² ≈ 0.021) and the relative wheel speeds (905/906,
+η² ≈ 0.008) — all directly driver-actuated, and low η² is exactly what a
+*behavioural* signal should show. η² detects leakage; it does not rank usefulness,
+and for a neural encoder reading a waveform it says little about what is usable.
+
+**Upsampling is explicitly not a reason to drop.** 11 channels are upsampled at a
+120 s window and 32 at 30 s, but those interpolated points lie *between real
+samples* — a 1 Hz brake pressure smoothly filled to 4.27 Hz still carries its
+signal. That is categorically different from SPN 3030, where interpolation spans
+six seconds of genuine silence. SPN 5052 belongs in the benign category: its worst
+gap across the whole dataset is 0.102 s, smaller than one grid step at 120 s.
+
+**No anti-alias filter.** Median aliased power is **0.4%**, so a filter would change
+almost nothing; it cannot recover content above Nyquist, only stop it folding back.
+And the window sweep found 30 s at 17.07 Hz *lost* to 120 s at 4.27 Hz, which is
+evidence the high-frequency band carries no driver signal worth cleaning up. Proper
+anti-aliasing on irregularly sampled data also needs three operations where there is
+now one.
+
+**Deferred, recorded rather than lost:** masking SPN 3030 with a torque-converter
+lockup indicator — its blackout pattern *is* the lockup pattern, and when a driver
+lets the converter lock up is driving style that interpolation erases. Also
+anti-alias filtering. Neither is built.
+
+**⚑ SPN 2979 is a bookkeeping correction, not new analysis.** S1 already established
+it is unusable: *"40.2% of its aggregated values are currently illegal because
+interpolation runs across the sentinel. Unusable until sentinel → NaN."* It was
+recorded there as **"kept conditionally"** rather than excluded, so it never entered
+the exclusion list the build scripts read, and a conditional whose precondition was
+then deferred silently became an inclusion. **A condition that cannot be satisfied
+within scope should be recorded as an exclusion.** Corrected here.
+
+Three independent measurements agree on it: 40.2% illegal aggregated values
+(`aggregation_validity.md`), round-trip error **1.150** — above 1.0, meaning the
+interpolated reconstruction is worse than predicting the channel's mean — and the
+highest anti-alias delta of any channel at **every** window length (0.688 at 120 s),
+the only channel flagged severe at all four.
+
+**Lineage:** 102 raw signals → 49 excluded (S1) → 53 → **50 model channels**
+(S1's 49 + SPN 51 + SPN 3030 + SPN 2979 = 52 excluded of 102).
+
+---
+
+## S2 — SPN 3030 and 5052 kept as-is; masking deferred as out of scope
+
+> **⚑ Partly superseded by S3:** SPN 3030 was later dropped on data quality. The SPN 5052 decision below still stands.
+
+**Scope rule applied (user's call, 2026-11-11):** this is a capstone on a deadline,
+not a journal paper. A channel that would need extra processing to use correctly is
+dropped or kept as-is with a stated limitation — it does not get new machinery.
+
+**The framing that prompted this was wrong, in opposite directions for the two
+channels.** Both were reported at "~48% dropout", which suggested half-fabricated
+values. Measured directly:
+
+| | effective rate | median worst gap | drivers with any gap > 1 s |
+|---|--:|--:|--:|
+| 5052 | 26.26 Hz | **0.102 s** | **1 / 46** |
+| 3030 | 25.11 Hz | **6.259 s** | **46 / 46**, 16–36 blackouts each |
+
+**SPN 5052 has no silence at all.** Its worst gap across the dataset is a tenth of
+a second. The "48% dropout" was an artifact of scoring sample count against a 50 Hz
+nominal when its real cadence is ~26 Hz — short 50 Hz bursts with 100 ms pauses. At
+a 120 s window each of the 512 grid points spans 234 ms, so its worst gap is smaller
+than one grid step. **Nothing to decide; keep.**
+
+**SPN 3030's blackouts are real** — every driver, 16–36 per drive, median worst
+6.26 s, which at 120 s is ~26 consecutive fabricated grid points. The asymmetry is
+the diagnostic: the research places both SPNs in PGN 61452 (ETC8), so a protocol
+cause would hit both identically, and it does not (46/46 vs 1/46). The physical
+reading fits instead — torque converter *ratio* is only meaningful while the
+converter is unlocked, where input *speed* is measurable either way. On a 20-mile
+route with highway segments, 16–36 lockup episodes per drive is expected.
+
+**⚑ Not a standards claim.** Deep research across the public J1939 mirrors, Allison
+and Eaton service documentation, Vector/Kvaser/CSS tooling docs and the J1939 logging
+literature found **no source stating that ETC8 is transmitted conditionally**. The
+one cell that would settle it — ETC8's rate field in J1939DA — is paywalled. The
+writeup must say "consistent with" and not "the standard specifies".
+
+**Decision: keep both, 53 channels, no masking.** Masking 3030's blackouts with an
+indicator channel is the methodologically better answer, and its pattern is
+genuinely behavioural — when a driver lets the converter lock up is driving style,
+which interpolation erases. But it is new machinery on a deadline, so it is
+**deferred and recorded as future work** rather than built.
+
+**Stated limitation for the writeup:** one of 53 channels is linearly interpolated
+across ~20–30 multi-second gaps per drive. Round-trip error measures 0.030, but that
+statistic only compares at observed timestamps and therefore **cannot** measure error
+inside a gap, where there is no ground truth. The honest statement is that the
+fabrication is bounded in extent, not that it is accurate.
+
+Related: the sentinel pattern is the documented J1939 convention for missing data
+(Kvaser: "the byte that should have contained this parameter is set to 'not
+available' (0xFF)"), which makes silence the unusual case — see SPN 2979 in S1,
+which signals `11b = Not available` rather than going quiet.
+
+---
+
 ## S1 — The signal exclusion list: 40 → 49, decided from type-matched statistics
 
 **Full reasoning:** `outputs/reports/signal_exclusion_decisions.md`
