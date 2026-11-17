@@ -6,6 +6,74 @@ on trust. Newest first within each section.
 
 ---
 
+## S5 — Step signals stay on linear interpolation: damage measured, bounded, accepted
+
+**The problem.** `build_windows.resample_window` applies `np.interp` to every
+channel. That is the correct method for the **44 continuous** channels and the wrong
+method for the **6 step** channels — 523, 524 (gear), 573 (lockup engaged), 574
+(shift in process), 2945 (shift console), 4816 (lockup transition). Interpolating
+gear 3 to gear 4 emits 3.5, a state the transmission was never in, and spreads each
+change across the gap between two samples. The correct method for a step signal is
+zero-order hold (repeat the previous value), per `signal_classification.md`.
+
+**Decision: keep `np.interp` for all 50 channels. Zero-order hold is not built.**
+The defect is real; it was measured, and it is too small to change a conclusion.
+
+**The measurement** — `QC/verify_aggregation_validity_50ch.py`, all 46 drivers,
+every window length (`outputs/reports/aggregation_validity_50ch.md`):
+
+| SPN | Signal | Native rate | Illegal values, worst window length |
+|--:|---|--:|--:|
+| 524 | Selected Gear | 10 Hz | 0.64% |
+| 523 | Current Gear | 10 Hz | 0.65% |
+| 573 | Lockup Engaged | 100 Hz | 0.13% |
+| 574 | Shift In Process | 100 Hz | 0.02% |
+| 2945 | Shift Console | 10 Hz | 0.01% |
+| 4816 | Lockup Transition | 100 Hz | 0.00% |
+
+At most about 3 of the 512 points per window are fabricated, and the share is the
+same at 30, 51.2, 90 and 120 s: a shorter window holds fewer transitions but also
+fewer seconds, and the two cancel.
+
+**Why this is acceptable, not ignored:**
+
+1. **Where interpolation did real damage, the channel was removed.** SPN 2979 had
+   40.2% illegal values and SPN 3030 was interpolated across multi-second
+   blackouts; both are excluded (S3). Every channel was measured; the six kept are
+   the ones where the damage is under 1%.
+2. **Zero-order hold would not recover the true timing either.** A sensor logged
+   at 10 Hz only says a gear change happened somewhere in a 0.1 s gap.
+   Interpolation spreads the change across that gap; zero-order hold places it at
+   the later sample, up to 0.1 s late. Both carry the same timing uncertainty,
+   because it is set by the sensor's rate (0.1 s for gear, 0.01 s for the 100 Hz
+   channels), not by the resampling method.
+3. **The fabricated points cannot leak identity.** They occur only at genuine
+   transitions, so they mark how often a driver shifts — real driving behaviour,
+   already present in the signal — rather than an artefact unrelated to the driver.
+
+**Not measured:** the effect of these six channels on the model. The 0.64% bounds
+how much of the input is fabricated, not how much of the result depends on it.
+
+**Future work, recorded rather than lost:**
+
+- **Ablation:** drop the six step channels and re-score. For the frozen encoder this
+  is a column slice of the cached embeddings — verified equal to a re-embed to
+  ≤8.6e-6 in exp05 — so it needs no GPU. If accuracy does not move, the step
+  channels' pre-processing cannot be driving the results, whichever method is used.
+- **Typed resampling:** zero-order hold for the six step channels, linear
+  interpolation for the rest.
+
+**Stated limitation for the writeup:** six of 50 channels are step signals resampled
+by linear interpolation; at most 0.65% of their values are fabricated, at every
+window length, and the timing of each state change is uncertain by one native
+sample interval regardless of the resampling method.
+
+Evidence: `outputs/reports/aggregation_validity_50ch.md` (step channels),
+`outputs/reports/resampling_distortion.md` (continuous channels),
+`outputs/reports/sampling_rate_all_drivers.md` (native rates).
+
+---
+
 ## S3 — Model input is 50 channels: SPN 51, 3030 and 2979 dropped on data quality
 
 **Supersedes S2's "keep 3030".** Same scope rule, applied one step further: a

@@ -1,5 +1,7 @@
 # Aggregation validity — what linear interpolation does to step signals
 
+> **SUPERSEDED for the model input** by `aggregation_validity_50ch.md` (50 channels, 4 windows, 46 drivers). Kept as the evidence for excluding SPN 2979.
+
 Measured over **8 drivers**, 120s windows, on the **13 step channels** among the 62 audited channels fed to the models. Windows are built exactly as `build_windows.build_driver_windows` builds them, and the resampling is `build_windows.resample_window` itself, imported — this measures the shipping code, not a reimplementation.
 
 **Legal values** are the values each signal was observed to take anywhere in this dataset. A resampled point is counted illegal when it matches none of them: a state the vehicle was never in.

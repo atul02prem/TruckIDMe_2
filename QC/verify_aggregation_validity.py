@@ -1,5 +1,9 @@
 """Measure how many values linear interpolation fabricates for step signals.
 
+SUPERSEDED for the model input by `verify_aggregation_validity_50ch.py`
+(50 channels, 4 windows, 46 drivers). Kept runnable: its report is the
+evidence for excluding SPN 2979.
+
 `build_windows.resample_window` calls `np.interp` on every channel regardless of
 type. For a continuous signal that is correct. For a step signal — a gear, a mode,
 a status flag — it is not: interpolating gear 4 to gear 5 emits 4.37, a state the
@@ -49,17 +53,20 @@ def flag(illegal: float) -> str:
     return "🟢"
 
 
-def load_channels(csv_path: str) -> tuple[pd.DataFrame, dict[int, tuple[str, str]]]:
+def load_channels(csv_path: str,
+                  channel_spns: tuple[int, ...] = MVP_CHANNEL_SPNS
+                  ) -> tuple[pd.DataFrame, dict[int, tuple[str, str]]]:
     """Read one driver's processed CSV, keeping only the audited channels.
 
     Args:
         csv_path: processed CSV for one driver.
+        channel_spns: SPNs to read; defaults to the 62-channel MVP set.
 
     Returns:
         (frame, channels) where channels maps SPN -> (signal column, time column).
     """
     header = pd.read_csv(csv_path, nrows=0).columns.tolist()
-    channels = resolve_channels(header, MVP_CHANNEL_SPNS)
+    channels = resolve_channels(header, channel_spns)
     needed = ["canloggerTime"] + [c for pair in channels.values() for c in pair]
     frame = pd.read_csv(csv_path, usecols=sorted(set(needed)))
     return frame, channels
@@ -183,7 +190,8 @@ def audit_driver(series: dict[int, tuple[np.ndarray, np.ndarray]],
                  starts: np.ndarray,
                  steps: list[int],
                  legal: dict[int, np.ndarray],
-                 names: dict[int, str]) -> list[dict]:
+                 names: dict[int, str],
+                 window_seconds: float = WINDOW_SECONDS) -> list[dict]:
     """Measure interpolation damage for every step channel of one driver.
 
     Args:
@@ -192,13 +200,14 @@ def audit_driver(series: dict[int, tuple[np.ndarray, np.ndarray]],
         steps: the SPNs classified step, decided pooled over all drivers.
         legal: SPN -> values the signal takes anywhere in the dataset.
         names: SPN -> signal column name.
+        window_seconds: window length; defaults to the MVP 120 s.
 
     Returns:
         One row per (channel, window) that the pipeline would have built.
     """
     rows = []
     for start in starts:
-        end = start + WINDOW_SECONDS
+        end = start + window_seconds
         for spn in steps:
             times, values = series[spn]
             inside = (times >= start) & (times < end)
@@ -250,6 +259,8 @@ def write_report(table: pd.DataFrame, n_drivers: int) -> None:
 
     lines = [
         "# Aggregation validity — what linear interpolation does to step signals",
+        "",
+        "> **SUPERSEDED for the model input** by `aggregation_validity_50ch.md` (50 channels, 4 windows, 46 drivers). Kept as the evidence for excluding SPN 2979.",
         "",
         f"Measured over **{n_drivers} drivers**, {WINDOW_SECONDS}s windows, on the "
         f"**{len(table)} step channels** among the {len(MVP_CHANNEL_SPNS)} audited "
