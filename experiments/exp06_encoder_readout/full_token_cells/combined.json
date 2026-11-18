@@ -1,0 +1,55 @@
+{
+  "token": "combined",
+  "rows": [
+    {
+      "partition": 1,
+      "minutes": 24.129839654142657,
+      "features": 25600,
+      "linear_probe": 0.4098573281452659,
+      "lda_centroid": 0.4163424124513619,
+      "random_forest": 0.3138780804150454,
+      "window_auroc": 0.5808861317083915,
+      "driver_auroc": 0.7555555555555556
+    },
+    {
+      "partition": 2,
+      "minutes": 28.457019221037626,
+      "features": 25600,
+      "linear_probe": 0.40382165605095544,
+      "lda_centroid": 0.3872611464968153,
+      "random_forest": 0.2917197452229299,
+      "window_auroc": 0.5685388921057711,
+      "driver_auroc": 0.6027777777777777
+    },
+    {
+      "partition": 3,
+      "minutes": 22.8693550153325,
+      "features": 25600,
+      "linear_probe": 0.4486345903771131,
+      "lda_centroid": 0.4226267880364109,
+      "random_forest": 0.33550065019505854,
+      "window_auroc": 0.5719042815648433,
+      "driver_auroc": 0.7277777777777777
+    },
+    {
+      "partition": 4,
+      "minutes": 22.86104143795868,
+      "features": 25600,
+      "linear_probe": 0.4150453955901427,
+      "lda_centroid": 0.3955901426718547,
+      "random_forest": 0.29831387808041504,
+      "window_auroc": 0.5486136602794704,
+      "driver_auroc": 0.5222222222222223
+    },
+    {
+      "partition": 5,
+      "minutes": 22.747870983928443,
+      "features": 25600,
+      "linear_probe": 0.41952506596306066,
+      "lda_centroid": 0.4102902374670185,
+      "random_forest": 0.3073878627968338,
+      "window_auroc": 0.583776018762826,
+      "driver_auroc": 0.6333333333333333
+    }
+  ]
+}
