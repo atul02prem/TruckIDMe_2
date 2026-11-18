@@ -18,11 +18,17 @@ became an inclusion. Building the model input directly removes the gap --
 `main` asserts that no excluded SPN is present, so a decision recorded in
 DECISIONS.md but missing from EXCLUDED_SPNS fails loudly instead of shipping.
 
+**Resampling is `np.interp` for all 50 channels** (`build_windows.resample_window`).
+That is correct for the 44 continuous channels and an approximation for the 6 step
+channels (gear 523/524, 573, 574, 2945, 4816), where it fabricates at most 0.65% of
+values at any window length. Accepted with the measurements in DECISIONS.md S5;
+zero-order hold for step channels is recorded there as future work.
+
 The channel order is still saved alongside each tensor, so downstream code selects
 by SPN rather than by column position.
 
-Tensors go to `data/interim_data/` (gitignored) rather than into this experiment
-folder, since four window lengths come to roughly 400 MB.
+Tensors go to `data/interim_data/` (gitignored), since four window lengths come to
+roughly 400 MB.
 
 Run from the repo root in the `truckidme` env:
     python -m src.features.build_tensors
