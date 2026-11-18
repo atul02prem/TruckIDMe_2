@@ -118,3 +118,24 @@ def eta_squared(values: np.ndarray, labels: np.ndarray) -> np.ndarray:
         between += len(member) * (member.mean(axis=0) - grand_mean) ** 2
     with np.errstate(divide="ignore", invalid="ignore"):
         return np.where(total > 0, between / total, 0.0)
+
+
+def known_train_index(drivers: np.ndarray, starts: np.ndarray,
+                      known: np.ndarray) -> np.ndarray:
+    """Training window positions for one partition's known drivers.
+
+    The same chronological split `evaluate_partition` applies, computed here so
+    the encoder is fitted on exactly the windows that will later be used to build
+    prototypes — and on nothing else.
+
+    Args:
+        drivers: driver id per window.
+        starts: window start time per window.
+        known: driver ids treated as enrolled.
+
+    Returns:
+        Positions into the full window arrays.
+    """
+    positions = np.flatnonzero(np.isin(drivers, known))
+    train_local, _ = split_by_driver(drivers[positions], starts[positions])
+    return positions[train_local]
