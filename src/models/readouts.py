@@ -22,9 +22,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-from src.models.open_set import SEED   # the project seed; the forest's random_state
+from src.models.open_set import SEED
 from src.models.splits import split_by_driver
 
+HEADS: tuple[str, ...] = ("linear_probe", "lda_centroid", "random_forest")
 HEAD_KS: tuple[int, ...] = (1, 2)
 
 # For LDA only. A 12,800-dimensional scatter matrix is not formable, so the

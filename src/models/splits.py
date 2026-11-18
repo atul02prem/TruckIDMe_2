@@ -139,3 +139,22 @@ def known_train_index(drivers: np.ndarray, starts: np.ndarray,
     positions = np.flatnonzero(np.isin(drivers, known))
     train_local, _ = split_by_driver(drivers[positions], starts[positions])
     return positions[train_local]
+
+
+def inner_train_index(drivers: np.ndarray, starts: np.ndarray,
+                      known: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Split the known drivers' training windows into inner-train and the rest.
+
+    Args:
+        drivers: driver id per window.
+        starts: window start time per window.
+        known: driver ids treated as enrolled.
+
+    Returns:
+        (inner_train positions, known_train positions), both into the full
+        window arrays. The encoder is fitted on the first; read-outs are later
+        scored on the inner-validation part of the second.
+    """
+    known_train = known_train_index(drivers, starts, known)
+    local, _ = split_by_driver(drivers[known_train], starts[known_train])
+    return known_train[local], known_train
