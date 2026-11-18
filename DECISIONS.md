@@ -6,6 +6,32 @@ on trust. Newest first within each section.
 
 ---
 
+## S6 — Resampling stays `np.interp`: bin averaging tested and not adopted
+
+**The question.** `np.interp` point-samples each channel onto the 512-point grid,
+so a channel faster than the grid is decimated without averaging. Bin averaging
+(the mean of the raw samples in each of 512 bins) is the textbook alternative.
+
+**Rule, fixed before the test run:** adopt bin averaging only if, at the headline
+30 s window, its mean driver AUROC is higher **and** it improves on at least 4 of
+5 partitions **and** closed-set LDA is not more than 2pp lower.
+
+**Measured** (`experiments/exp08_layer_resampling/round1.md`, `round2.md`):
+
+| Window | LDA, binavg − interp | driver AUROC, binavg − interp | partitions improved |
+|--:|--:|--:|--:|
+| **30 s** | +1.3pp | +0.018 | **2 of 5** |
+| 51.2 s | −2.1pp | −0.051 | 1 of 5 |
+| 90 s | −0.9pp | −0.024 | 2 of 5 |
+| 120 s | +4.2pp | −0.041 | 2 of 5 |
+
+Inner validation (Round 1) had already kept `np.interp`. On test, bin averaging's
+higher mean at 30 s rests on one partition (driver AUROC 0.844 against 0.669); it
+improves 2 of 5. **The rule is not met; `np.interp` stays.** Its distortion is
+measured for both signal types (`resampling_distortion.md`, S5).
+
+---
+
 ## S5 — Step signals stay on linear interpolation: damage measured, bounded, accepted
 
 **The problem.** `build_windows.resample_window` applies `np.interp` to every
@@ -359,6 +385,9 @@ that a pipeline did what was asked rather than that it exited zero.
 
 ## B3 — Library limitation: `MantisTrainer` ignores the adapter when predicting
 
+> **⚑ Narrowed after reading the library:** the crash below is real for `fine_tuning_type="head"`, where `predict_proba` pre-encodes raw channels. With `adapter_head`, `predict_proba` applies the adapter (verified, difference 0.0); `full` takes the same code path but was not run. `transform()` ignores the adapter in every mode, so adapted *embeddings* for our read-outs would still need custom code. The adapter remains untested; it is future work, not impossible.
+
+
 `fit(..., adapter=...)` sizes the classification head for the adapted channel
 count, but `predict_proba` encodes each *raw* channel and concatenates, so the
 head receives 62 x 512 = 31,744 features where it was built for 10 x 512 = 5,120
@@ -473,6 +502,9 @@ scoring the same is evidence about the *data*, not the models. It is the cheapes
 diagnostic in this project.
 
 ### F2 — Open-set rejection by distance is at chance, across five scoring rules
+
+> **⚑ Overturned by D12:** the null came from the scoring (PCA 50). With LDA-based scoring chosen on inner validation, driver AUROC is 0.689 ± 0.043.
+
 On 8 channels / 51 s, every rejection rule gave AUROC 0.52–0.54 (chance = 0.50):
 Euclidean and cosine distance to the nearest prototype, the nearest/second-nearest
 ratio, Mahalanobis distance with a shared within-driver covariance, and
@@ -514,18 +546,127 @@ timing is sound; **absolute timestamps are not comparable across drivers**.
 
 ## Decisions made autonomously (2026-10-11 onward)
 
+### D14 — Read-out block: frozen moves to block 1; fine-tuned stays at block 3
+
+**Naming first.** Mantis's `return_transf_layer` is **0-based**: the value 2 used
+throughout this project is the output after **block 3 of 6**; -1 is after block 6.
+Earlier entries and reports that say "layer 2" mean block 3. Numbers are
+unaffected; only the wording was wrong.
+
+**Why it was re-opened.** Block index 2 was the Mantis paper's recommendation
+(D10), and exp08 Round 1 compared it only with the final block. The frozen grid
+(`experiments/exp06_encoder_readout/rescore_frozen.md`) then reported every block
+on test, and closed-set accuracy fell with depth at every window. A choice from a
+test table is not allowed, so the comparison was re-run on inner validation.
+
+**Rule, fixed before either run:** switch from block index 2 only if another block
+beats it by ≥ 2pp at ≥ 3 of the 4 windows (inner validation).
+
+**Frozen arm** (`experiments/exp08_layer_resampling/layer_profile.md`, 46-way LDA,
+inner validation, `mean_token`):
+
+| Block | 30 s | 51.2 s | 90 s | 120 s |
+|---|--:|--:|--:|--:|
+| **1 of 6 (index 0)** | **30.1%** | **38.5%** | **43.4%** | 38.8% |
+| 3 of 6 (index 2) | 26.5% | 33.4% | 38.0% | 36.0% |
+| 6 of 6 (final) | 20.3% | 24.1% | 24.8% | 23.6% |
+
+Block 1 wins at 4 of 4 windows (+2.8 to +5.4pp). **Rule met: the frozen arm reads
+out at block 1**, and its window is re-chosen on the same inner validation:
+**90 s** (43.4%). Block index 2 reproduced exp06 `confirm_token.md` exactly.
+
+**Fine-tuned arm** (`round1.py --layer 0` against Round 1's block-3 cell, 36-way,
+inner validation, best read-out):
+
+| Window | block 3 | block 1 |
+|--:|--:|--:|
+| **30 s** | **47.8%** | 34.7% |
+| 51.2 s | 39.9% | 44.2% |
+| 90 s | 45.0% | 45.5% |
+| 120 s | 38.4% | 45.7% |
+
+Block 1 wins by ≥ 2pp at 2 of 4. **Rule not met: the fine-tuned arm stays at block
+3, 30 s.** Block 1 helps where training windows are fewest (120 s) and hurts most
+where they are most plentiful (30 s) — consistent with a capacity trade-off, not
+tested further.
+
+**The two headline arms, test split:**
+
+| Arm | Block, window | 46-way closed (LDA) | open set, driver AUROC |
+|---|---|--:|--:|
+| frozen | 1 of 6, 90 s | 44.9% | 0.717 ± 0.069 |
+| fine-tuned | 3 of 6, 30 s | 43.1% ± 0.9 | 0.689 ± 0.043 |
+
+Frozen's 46-way number has no ± because nothing in it is random (no training,
+deterministic LDA). Every difference between the arms is within one standard
+deviation: the claim is **comparable**, not better.
+
+The frozen arm's closed-set number is stable across splits (inner 43.4%, test
+44.9%); its open-set number is not (inner 0.611 ± 0.049, test 0.717 ± 0.069).
+The fine-tuned arm's open-set number is the steadier of the two (inner 0.678 on
+one partition, test 0.689).
+
+**Stated limitation.** The open-set scoring (D12) was selected on fine-tuned
+block-3 embeddings. The frozen arm inherits it untuned; a frozen-specific
+selection could only hold or raise 0.717.
+
+Supersedes the read-out layer of D10 and exp08 Round 1's "layer 2 stays".
+
+### D13 — Output token: `mean_token`, not `cls_token`
+
+D10 chose `cls_token` with a nearest-centroid read-out on the 62-channel
+configuration, closed set only, without testing `mean_token`. exp06
+`confirm_token.md` re-ran the choice on inner validation, 46-way, best of three
+read-outs: **`mean_token` wins at every window by 7–12pp**; `combined` (twice the
+features) never beats it. Reported afterwards on test, not used to choose:
+
+- frozen, open set (`rescore_frozen.md`): `mean_token` best at every window;
+- fine-tuned, 30 s (`full_token.md`, pre-registered): `mean_token` best closed set
+  on 5 of 5 partitions; open set within noise (`cls_token` 0.713 ± 0.078 against
+  0.689 ± 0.043).
+
+Supersedes the token of D10.
+
+### D12 — Open-set scoring chosen on inner validation, by the median, then pre-registered
+
+exp07 Phase C swept 1,300 scoring configurations (10 projections × 5 transforms ×
+4 prototypes × 13 rules) on inner validation and chose each setting by its
+**median** across all configurations sharing it, not by the single best cell:
+LDA projection → L2-normalise → whiten → one mean per driver → cosine distance.
+It was written down before any test window was scored.
+
+On test (`experiments/exp07_full_window/phase_c_final.md`), same embeddings:
+the earlier scoring (PCA 50, Mahalanobis) gives driver AUROC **0.514**; the
+pre-registered one **0.689 ± 0.043**. The sweep's single best inner cell (0.806)
+fell to **0.549** on test — choosing by the maximum would have failed.
+
+Supersedes D8 and overturns F2.
+
+### D11 — The best window depends on the arm
+
+On inner validation the frozen encoder prefers long windows (exp06: 90 s best)
+while the fine-tuned encoder prefers 30 s (exp07 `phase_a.md`: 47.8%, 2.8pp clear
+of 90 s). Fine-tuning is limited by the number of training windows, and 30 s
+gives four times as many as 120 s. Each arm uses the window chosen for it.
+
 ### D9 — Five rejection rules instead of one
 Reporting a single rejection score would have left "the score was badly chosen"
 as an unanswerable objection. Five standard open-set rules are now computed, all
 from known-driver statistics, and the report shows every one.
 
 ### D8 — Features are PCA-reduced (50 components) before distance scoring
+
+> **⚑ Superseded by D12:** open-set scoring now projects with LDA.
+
 Fitted on known-driver training windows only. With ~31,700 embedding dimensions
 and a few hundred training windows, raw Euclidean distances concentrate — every
 point sits at almost the same distance from every prototype — which alone can
 produce a chance-level AUROC.
 
 ### D10 — Encoder read-out re-selected after the data configuration changed
+
+> **⚑ Superseded:** the token by D13 (`mean_token`), the read-out block by D14. "Layer 2" below means block 3 of 6 (0-based index 2).
+
 The first selection ran on 8 channels / 51 s and picked layer 2 + `combined`
 tokens (the paper's recommendation), by 0.5 points over the library default.
 Re-run at the final configuration (62 channels, 120 s) the ranking changed:
