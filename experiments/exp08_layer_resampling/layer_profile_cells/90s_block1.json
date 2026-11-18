@@ -1,0 +1,49 @@
+{
+  "closed46": {
+    "linear_probe": 0.23553719008264462,
+    "lda_centroid": 0.4214876033057851,
+    "random_forest": 0.17768595041322313
+  },
+  "partitions": [
+    {
+      "partition": 1,
+      "linear_probe": 0.2804232804232804,
+      "lda_centroid": 0.48677248677248675,
+      "random_forest": 0.30158730158730157,
+      "window_auroc": 0.5823100728761106,
+      "driver_auroc": 0.6166666666666666
+    },
+    {
+      "partition": 2,
+      "linear_probe": 0.2694300518134715,
+      "lda_centroid": 0.40414507772020725,
+      "random_forest": 0.23834196891191708,
+      "window_auroc": 0.5447816432272391,
+      "driver_auroc": 0.6083333333333334
+    },
+    {
+      "partition": 3,
+      "linear_probe": 0.3157894736842105,
+      "lda_centroid": 0.4421052631578947,
+      "random_forest": 0.2736842105263158,
+      "window_auroc": 0.5475708502024291,
+      "driver_auroc": 0.5472222222222223
+    },
+    {
+      "partition": 4,
+      "linear_probe": 0.25925925925925924,
+      "lda_centroid": 0.43915343915343913,
+      "random_forest": 0.2275132275132275,
+      "window_auroc": 0.5795148247978437,
+      "driver_auroc": 0.7000000000000001
+    },
+    {
+      "partition": 5,
+      "linear_probe": 0.2903225806451613,
+      "lda_centroid": 0.45698924731182794,
+      "random_forest": 0.23118279569892472,
+      "window_auroc": 0.5748847926267281,
+      "driver_auroc": 0.6222222222222222
+    }
+  ]
+}
