@@ -38,36 +38,70 @@ from src.models.embed_mantis import embed, load_encoder, pick_device
 from src.models.splits import TRAIN_END
 
 TOKENS: tuple[str, ...] = ("cls_token", "mean_token", "combined")
+# Mantis indexes its 6 transformer blocks from 0: index 2 is the output after
+# the 3rd block (the project's read-out), -1 after the 6th (final) block.
+LAYERS: tuple[int, ...] = (MANTIS_LAYER, -1)
+# The layer profile: every block, for the headline token, at every window.
+PROFILE_TOKEN = "mean_token"
+PROFILE_WINDOWS: tuple[float, ...] = WINDOW_LENGTHS
+PROFILE_LAYERS: tuple[int, ...] = (0, 1, 3, 4)   # 2 and final are in LAYERS
 REPORT_PATH = OUT_REPORTS / "embeddings.md"
 
 
-def embedding_path(token: str, window_seconds: float) -> Path:
+def layer_name(layer: int) -> str:
+    """Human-readable read-out layer.
+
+    Args:
+        layer: 0-based block index, or -1 for the final block.
+
+    Returns:
+        e.g. 'index 2 (block 3 of 6)' or 'final (block 6 of 6)'.
+    """
+    if layer == -1:
+        return "final (block 6 of 6)"
+    return f"index {layer} (block {layer + 1} of 6)"
+
+
+def embedding_path(token: str, window_seconds: float,
+                   layer: int = MANTIS_LAYER) -> Path:
     """Where one token's frozen embeddings at one window length are saved.
+
+    The project's read-out layer keeps the original file names, so every
+    existing reader is unchanged; other layers are marked in the name.
 
     Args:
         token: 'cls_token', 'mean_token' or 'combined'.
         window_seconds: window length.
+        layer: read-out block index; defaults to the project's.
 
     Returns:
         Path under `data/interim_data/`.
     """
-    return DATA_INTERIM / f"embeddings_frozen_{token}_{window_seconds:g}s.npz"
+    if layer == MANTIS_LAYER:
+        return DATA_INTERIM / f"embeddings_frozen_{token}_{window_seconds:g}s.npz"
+    if layer == -1:
+        return (DATA_INTERIM /
+                f"embeddings_frozen_final_{token}_{window_seconds:g}s.npz")
+    return (DATA_INTERIM /
+            f"embeddings_frozen_layer{layer}_{token}_{window_seconds:g}s.npz")
 
 
-def build_one(token: str, window_seconds: float, device: str) -> dict:
+def build_one(token: str, window_seconds: float, device: str,
+              layer: int) -> dict:
     """Embed one window length's tensor under one token and save it.
 
     Args:
         token: output token.
         window_seconds: window length.
         device: torch device string.
+        layer: read-out block index.
 
     Returns:
         Shapes, elapsed seconds and file size for the report.
     """
     bundle = np.load(tensor_path(window_seconds), allow_pickle=False)
     windows = bundle["X"]
-    model = load_encoder(device, token=token)
+    model = load_encoder(device, token=token, layer=layer)
     started = time.perf_counter()
     features = embed(model, windows)
     elapsed = time.perf_counter() - started
@@ -75,15 +109,16 @@ def build_one(token: str, window_seconds: float, device: str) -> dict:
     if device == "cuda":
         torch.cuda.empty_cache()
 
-    path = embedding_path(token, window_seconds)
+    path = embedding_path(token, window_seconds, layer)
     np.savez_compressed(path, E=features, driver=bundle["driver"],
                         start_time=bundle["start_time"],
                         channels=bundle["channels"],
                         token=np.asarray([token]),
-                        layer=np.asarray([MANTIS_LAYER]),
+                        layer=np.asarray([layer]),
                         checkpoint=np.asarray([MANTIS_CHECKPOINT]))
     return {
         "token": token,
+        "layer": layer,
         "window_seconds": window_seconds,
         "windows": int(windows.shape[0]),
         "channels": int(windows.shape[1]),
@@ -109,8 +144,9 @@ def build_report(rows: list[dict], device: str) -> str:
     lines = [
         "# Frozen Mantis embeddings",
         "",
-        f"`{MANTIS_CHECKPOINT}`, read-out layer **{MANTIS_LAYER}**, frozen (no "
-        f"training), on **{device}**. Built by `src/features/build_embeddings.py` "
+        f"`{MANTIS_CHECKPOINT}`, frozen (no training), on **{device}**, read "
+        f"out at two layers: **{layer_name(MANTIS_LAYER)}**, the project's, and "
+        f"**{layer_name(-1)}**. Mantis numbers its 6 blocks from 0. Built by `src/features/build_embeddings.py` "
         "from the window tensors; checked by `QC/verify_embeddings.py`.",
         "",
         "Each of the 50 channels is encoded on its own and the per-channel "
@@ -118,13 +154,14 @@ def build_report(rows: list[dict], device: str) -> str:
         "`mean_token` for each channel, so it holds twice the numbers but is "
         "built from the same 256-wide token space.",
         "",
-        "| Token | Window | Windows | Dims/ch | Features | Features per train "
-        "example | Size | Time |",
-        "|---|--:|--:|--:|--:|--:|--:|--:|",
+        "| Layer | Token | Window | Windows | Dims/ch | Features | Features per "
+        "train example | Size | Time |",
+        "|---|---|--:|--:|--:|--:|--:|--:|--:|",
     ]
     for row in rows:
         lines.append(
-            f"| `{row['token']}` | {row['window_seconds']:g} s | "
+            f"| {layer_name(row['layer'])} | `{row['token']}` | "
+            f"{row['window_seconds']:g} s | "
             f"{row['windows']} | {row['dims_per_channel']} | "
             f"{row['features']:,} | **{row['features_per_train_example']:.1f}** | "
             f"{row['megabytes']:.0f} MB | {row['seconds']:.1f} s |")
@@ -165,13 +202,16 @@ def main() -> None:
 
     device = pick_device()
     rows = []
-    for token in TOKENS:
-        for window_seconds in WINDOW_LENGTHS:
-            row = build_one(token, window_seconds, device)
-            rows.append(row)
-            print(f"  {token:<11} {window_seconds:>5g}s  {row['windows']:>5} "
-                  f"windows  {row['features']:>6} features  "
-                  f"{row['seconds']:>5.1f}s", flush=True)
+    cells = [(layer, token, window_seconds) for layer in LAYERS
+             for token in TOKENS for window_seconds in WINDOW_LENGTHS]
+    cells += [(layer, PROFILE_TOKEN, window_seconds)
+              for window_seconds in PROFILE_WINDOWS for layer in PROFILE_LAYERS]
+    for layer, token, window_seconds in cells:
+        row = build_one(token, window_seconds, device, layer)
+        rows.append(row)
+        print(f"  L{layer:<3} {token:<11} {window_seconds:>5g}s  "
+              f"{row['windows']:>5} windows  {row['features']:>6} features  "
+              f"{row['seconds']:>5.1f}s", flush=True)
 
     REPORT_PATH.write_text(build_report(rows, device))
     print(f"\nreport -> {REPORT_PATH}")

@@ -33,18 +33,21 @@ def pick_device() -> str:
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def load_encoder(device: str, token: str = MANTIS_OUTPUT_TOKEN) -> MantisTrainer:
+def load_encoder(device: str, token: str = MANTIS_OUTPUT_TOKEN,
+                 layer: int = MANTIS_LAYER) -> MantisTrainer:
     """Load the pre-trained Mantis encoder, frozen.
 
     Args:
         device: 'cuda' or 'cpu'.
         token: 'cls_token', 'mean_token' or 'combined'; defaults to the
             config value so existing callers are unchanged.
+        layer: transformer block index to read out, 0-based; -1 is the
+            final (6th) block. Defaults to the config value.
 
     Returns:
         A MantisTrainer wrapping the pre-trained network, ready for transform().
     """
-    network = MantisV1(device=device, return_transf_layer=MANTIS_LAYER,
+    network = MantisV1(device=device, return_transf_layer=layer,
                        output_token=token)
     network = network.from_pretrained(CHECKPOINT)
     if hasattr(network, "remove_transf_layers"):

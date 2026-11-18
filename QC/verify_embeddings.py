@@ -1,6 +1,7 @@
 """Verify the frozen Mantis embeddings against their tensors and against each other.
 
-`build_embeddings.py` writes 12 files (3 tokens x 4 window lengths). This reads
+`build_embeddings.py` writes 24 files (2 read-out layers x 3 tokens x 4 window
+lengths). This reads
 them back and checks that each one is what it claims to be:
 
 | Check | Fault it catches |
@@ -28,7 +29,9 @@ from __future__ import annotations
 import numpy as np
 
 from src.config import DATA_INTERIM, MANTIS_LAYER, OUT_REPORTS
-from src.features.build_embeddings import TOKENS, embedding_path
+from src.features.build_embeddings import (LAYERS, PROFILE_LAYERS,
+                                           PROFILE_TOKEN, PROFILE_WINDOWS,
+                                           TOKENS, embedding_path, layer_name)
 from src.features.build_tensors import WINDOW_LENGTHS, tensor_path
 from src.models.embed_mantis import embed, load_encoder, pick_device
 
@@ -52,18 +55,21 @@ def old_cls_path(window_seconds: float):
     return DATA_INTERIM / f"embeddings_armB_{window_seconds:g}s.npz"
 
 
-def check_file(token: str, window_seconds: float, tensor) -> list[tuple]:
+def check_file(token: str, window_seconds: float, tensor,
+               layer: int) -> list[tuple]:
     """Structural checks on one embedding file against its tensor.
 
     Args:
         token: output token.
         window_seconds: window length.
         tensor: the loaded window tensor `.npz`.
+        layer: read-out block index.
 
     Returns:
         (check name, passed, detail) rows.
     """
-    saved = np.load(embedding_path(token, window_seconds), allow_pickle=False)
+    saved = np.load(embedding_path(token, window_seconds, layer),
+                    allow_pickle=False)
     features = saved["E"]
     n_windows, n_channels, _ = tensor["X"].shape
     expected = (n_windows, n_channels * TOKEN_DIMS[token])
@@ -79,22 +85,25 @@ def check_file(token: str, window_seconds: float, tensor) -> list[tuple]:
         ("labels match the tensor", labels_ok,
          "driver, start_time and channels identical"
          if labels_ok else "MISMATCH"),
-        ("stored token and layer", stored == (token, MANTIS_LAYER),
+        ("stored token and layer", stored == (token, layer),
          f"{stored[0]}, layer {stored[1]}"),
     ]
 
 
-def check_combined(window_seconds: float, n_channels: int) -> tuple:
+def check_combined(window_seconds: float, n_channels: int,
+                   layer: int) -> tuple:
     """Check `combined` is `cls_token` then `mean_token` for every channel.
 
     Args:
         window_seconds: window length.
         n_channels: channels in the tensor.
+        layer: read-out block index.
 
     Returns:
         (check name, passed, detail).
     """
-    parts = {t: np.load(embedding_path(t, window_seconds))["E"] for t in TOKENS}
+    parts = {t: np.load(embedding_path(t, window_seconds, layer))["E"]
+             for t in TOKENS}
     combined = parts["combined"].reshape(-1, n_channels, 512)
     cls = parts["cls_token"].reshape(-1, n_channels, 256)
     mean = parts["mean_token"].reshape(-1, n_channels, 256)
@@ -105,7 +114,7 @@ def check_combined(window_seconds: float, n_channels: int) -> tuple:
 
 
 def check_reproducible(token: str, window_seconds: float, tensor, model,
-                       rng: np.random.Generator) -> tuple:
+                       rng: np.random.Generator, layer: int) -> tuple:
     """Re-embed sampled windows and compare with the stored rows.
 
     Args:
@@ -114,11 +123,12 @@ def check_reproducible(token: str, window_seconds: float, tensor, model,
         tensor: the loaded window tensor `.npz`.
         model: frozen encoder loaded for this token.
         rng: seeded generator.
+        layer: read-out block index.
 
     Returns:
         (check name, passed, detail).
     """
-    stored = np.load(embedding_path(token, window_seconds))["E"]
+    stored = np.load(embedding_path(token, window_seconds, layer))["E"]
     picks = np.sort(rng.choice(stored.shape[0], size=SPOT_WINDOWS,
                                replace=False))
     fresh = embed(model, tensor["X"][picks])
@@ -163,8 +173,9 @@ def build_report(results: dict) -> str:
     lines = [
         "# Embedding verification — do the frozen embeddings match their source?",
         "",
-        "Reads the 12 files written by `src/features/build_embeddings.py` "
-        f"(3 tokens x {len(WINDOW_LENGTHS)} window lengths) and checks them "
+        "Reads the 24 files written by `src/features/build_embeddings.py` "
+        f"({len(LAYERS)} layers x 3 tokens x {len(WINDOW_LENGTHS)} window "
+        "lengths) and checks them "
         "against the window tensors, against each other, and against exp03's "
         "earlier `cls_token` files.",
         "",
@@ -197,22 +208,38 @@ def main() -> None:
                for w in WINDOW_LENGTHS}
     results: dict[str, list[tuple]] = {}
 
-    for token in TOKENS:
-        model = load_encoder(device, token=token)
-        for window_seconds in WINDOW_LENGTHS:
+    for layer in LAYERS:
+        for token in TOKENS:
+            model = load_encoder(device, token=token, layer=layer)
+            for window_seconds in WINDOW_LENGTHS:
+                tensor = tensors[window_seconds]
+                rows = check_file(token, window_seconds, tensor, layer)
+                rows.append(check_reproducible(token, window_seconds, tensor,
+                                               model, rng, layer))
+                results[f"{layer_name(layer)}, `{token}`, "
+                        f"{window_seconds:g} s"] = rows
+            del model
+
+    for layer in PROFILE_LAYERS:
+        model = load_encoder(device, token=PROFILE_TOKEN, layer=layer)
+        for window_seconds in PROFILE_WINDOWS:
             tensor = tensors[window_seconds]
-            rows = check_file(token, window_seconds, tensor)
-            rows.append(check_reproducible(token, window_seconds, tensor,
-                                           model, rng))
-            results[f"`{token}`, {window_seconds:g} s"] = rows
+            rows = check_file(PROFILE_TOKEN, window_seconds, tensor, layer)
+            rows.append(check_reproducible(PROFILE_TOKEN, window_seconds,
+                                           tensor, model, rng, layer))
+            results[f"layer profile: {layer_name(layer)}, `{PROFILE_TOKEN}`, "
+                    f"{window_seconds:g} s"] = rows
         del model
 
-    for window_seconds in WINDOW_LENGTHS:
-        n_channels = tensors[window_seconds]["X"].shape[1]
-        results[f"Across tokens and versions, {window_seconds:g} s"] = [
-            check_combined(window_seconds, n_channels),
-            check_continuity(window_seconds),
-        ]
+    for layer in LAYERS:
+        for window_seconds in WINDOW_LENGTHS:
+            n_channels = tensors[window_seconds]["X"].shape[1]
+            rows = [check_combined(window_seconds, n_channels, layer)]
+            # exp03's files exist only at the project's read-out layer
+            if layer == MANTIS_LAYER:
+                rows.append(check_continuity(window_seconds))
+            results[f"{layer_name(layer)}, across tokens, "
+                    f"{window_seconds:g} s"] = rows
 
     REPORT_PATH.write_text(build_report(results))
     failed = sum(not row[1] for rows in results.values() for row in rows)
